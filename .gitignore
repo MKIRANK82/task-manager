@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+
+# Test and tool cache
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+
+# SQLite temporary files
+*.db-shm
+*.db-wal
+*.db-journal
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Generated data
+data/backups/
+data/exports/

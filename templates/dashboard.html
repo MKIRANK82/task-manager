@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}
+Dashboard | Task Manager
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Dashboard</h1>
+
+        <p class="text-secondary mb-0">
+            Review current work, priorities and task hierarchy.
+        </p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm"
+            onclick="expandAllTasks()"
+        >
+            Expand All
+        </button>
+
+        <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm"
+            onclick="collapseAllTasks()"
+        >
+            Collapse All
+        </button>
+
+        <button
+            type="button"
+            class="btn btn-outline-primary btn-sm"
+            hx-get="/ui/tasks/tree"
+            hx-target="#task-tree-container"
+            hx-swap="innerHTML"
+        >
+            Refresh
+        </button>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+
+    <div class="col-12 col-sm-6 col-xl">
+        <div class="dashboard-card">
+            <div class="dashboard-label">Active Tasks</div>
+
+            <div class="dashboard-value">
+                {{ dashboard.total_active }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl">
+        <div class="dashboard-card">
+            <div class="dashboard-label">Planned Today</div>
+
+            <div class="dashboard-value">
+                {{ dashboard.planned_today }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl">
+        <div class="dashboard-card">
+            <div class="dashboard-label">Due Today</div>
+
+            <div class="dashboard-value">
+                {{ dashboard.due_today }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl">
+        <div class="dashboard-card">
+            <div class="dashboard-label">Overdue</div>
+
+            <div class="dashboard-value">
+                {{ dashboard.overdue }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl">
+        <div class="dashboard-card">
+            <div class="dashboard-label">In Progress</div>
+
+            <div class="dashboard-value">
+                {{ dashboard.in_progress }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl">
+        <div class="dashboard-card">
+            <div class="dashboard-label">Blocked</div>
+
+            <div class="dashboard-value">
+                {{ dashboard.blocked }}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="h5 mb-1">Tasks</h2>
+
+                <p class="text-secondary small mb-0">
+                    Click a task to view or edit it.
+                </p>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    onclick="expandAllTasks()"
+                >
+                    Expand All
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    onclick="collapseAllTasks()"
+                >
+                    Collapse All
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-outline-primary btn-sm"
+                    hx-get="/ui/tasks/tree"
+                    hx-target="#task-tree-container"
+                    hx-swap="innerHTML"
+                >
+                    Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div
+        id="task-tree-container"
+        class="task-tree-container"
+    >
+        {% include "task_tree.html" %}
+    </div>
+</div>
+
+{% endblock %}

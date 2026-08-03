@@ -1,0 +1,127 @@
+{% macro render_tasks(tasks, level=0) %}
+
+    {% for task in tasks %}
+
+        <div
+            class="task-row"
+            data-task-id="{{ task.task_id }}"
+            data-level="{{ level }}"
+        >
+            <div
+                class="task-line"
+                style="padding-left: {{ level * 24 + 12 }}px;"
+            >
+                <div class="task-left">
+
+                    {% if task.children %}
+                        <button
+                            type="button"
+                            class="tree-toggle"
+                            onclick="toggleChildren(
+                                {{ task.task_id }},
+                                this
+                            )"
+                            aria-expanded="true"
+                            title="Expand or collapse subtasks"
+                        >
+                            −
+                        </button>
+                    {% else %}
+                        <span class="tree-toggle-spacer"></span>
+                    {% endif %}
+
+                    <a
+                        href="/tasks/{{ task.task_id }}"
+                        class="task-link"
+                        title="Open task {{ task.task_number }}"
+                    >
+                        <span class="task-number">
+                            {{ task.task_number }}
+                        </span>
+
+                        <span class="task-description">
+                            {{ task.short_description }}
+                        </span>
+                    </a>
+
+                </div>
+
+                <div class="task-metadata">
+
+                    <span
+                        class="status-badge status-{{ task.status.value }}"
+                        title="Status"
+                    >
+                        {{ task.status.value.replace("_", " ").title() }}
+                    </span>
+
+                    <span
+                        class="priority-badge priority-{{ task.priority.value }}"
+                        title="Priority"
+                    >
+                        {{ task.priority.value.title() }}
+                    </span>
+
+                    {% if task.category %}
+                        <span
+                            class="category-badge"
+                            title="Category"
+                        >
+                            {{ task.category }}
+                        </span>
+                    {% endif %}
+
+                    <span
+                        class="task-date-range"
+                        title="Planned start and end dates"
+                    >
+                        {% if task.planned_start_date %}
+                            {{ task.planned_start_date.strftime("%d %b") }}
+                        {% else %}
+                            —
+                        {% endif %}
+
+                        <span class="date-separator">→</span>
+
+                        {% if task.planned_end_date %}
+                            {{ task.planned_end_date.strftime("%d %b") }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </span>
+
+                    {% if task.progress_percentage > 0 %}
+                        <span
+                            class="task-progress-text"
+                            title="Progress"
+                        >
+                            {{ task.progress_percentage }}%
+                        </span>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+        {% if task.children %}
+            <div
+                id="children-{{ task.task_id }}"
+                class="task-children"
+            >
+                {{ render_tasks(task.children, level + 1) }}
+            </div>
+        {% endif %}
+
+    {% else %}
+
+        {% if level == 0 %}
+            <div class="empty-state">
+                No active tasks found.
+            </div>
+        {% endif %}
+
+    {% endfor %}
+
+{% endmacro %}
+
+{{ render_tasks(task_tree) }}

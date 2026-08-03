@@ -1,0 +1,528 @@
+{% extends "base.html" %}
+
+{% block title %}
+Edit Task {{ task.task_number }} | Task Manager
+{% endblock %}
+
+{% block content %}
+
+<div class="task-form-page">
+
+    <div class="mb-4">
+        <a
+            href="/tasks/{{ task.task_id }}"
+            class="text-decoration-none small"
+        >
+            ← Back to Task
+        </a>
+
+        <h1 class="h3 mt-2 mb-1">
+            Edit Task {{ task.task_number }}
+        </h1>
+
+        <p class="text-secondary mb-0">
+            Update task information, schedule and progress.
+        </p>
+    </div>
+
+    {% if error_message %}
+        <div class="alert alert-danger" role="alert">
+            {{ error_message }}
+        </div>
+    {% endif %}
+
+    {% set current_status = task.status.value if task.status.value is defined else task.status %}
+    {% set current_priority = task.priority.value if task.priority.value is defined else task.priority %}
+    {% set current_task_type = task.task_type.value if task.task_type.value is defined else task.task_type %}
+
+    <form
+        method="post"
+        action="/tasks/{{ task.task_id }}/edit"
+    >
+        <div class="row g-4">
+
+            <div class="col-12 col-xl-8">
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+
+                        <h2 class="h5 mb-3">
+                            Basic Information
+                        </h2>
+
+                        <div class="row g-3">
+
+                            <div class="col-12 col-md-3">
+                                <label
+                                    for="parent_task_id"
+                                    class="form-label"
+                                >
+                                    Parent Task ID
+                                </label>
+
+                                <input
+                                    id="parent_task_id"
+                                    name="parent_task_id"
+                                    type="number"
+                                    min="0"
+                                    class="form-control"
+                                    value="{{ task.parent_task_id }}"
+                                    required
+                                >
+                            </div>
+
+                            <div class="col-12 col-md-9">
+                                <label
+                                    for="short_description"
+                                    class="form-label"
+                                >
+                                    Short Description
+                                </label>
+
+                                <input
+                                    id="short_description"
+                                    name="short_description"
+                                    type="text"
+                                    maxlength="200"
+                                    class="form-control"
+                                    value="{{ task.short_description }}"
+                                    required
+                                >
+                            </div>
+
+                            <div class="col-12">
+                                <label
+                                    for="description"
+                                    class="form-label"
+                                >
+                                    Description
+                                </label>
+
+                                <textarea
+                                    id="description"
+                                    name="description"
+                                    rows="6"
+                                    maxlength="5000"
+                                    class="form-control"
+                                >{{ task.description or "" }}</textarea>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label
+                                    for="status"
+                                    class="form-label"
+                                >
+                                    Status
+                                </label>
+
+                                <select
+                                    id="status"
+                                    name="task_status"
+                                    class="form-select"
+                                    required
+                                >
+                                    {% for status in statuses %}
+                                        <option
+                                            value="{{ status.value }}"
+                                            {% if current_status == status.value %}
+                                                selected
+                                            {% endif %}
+                                        >
+                                            {{ status.value.replace("_", " ").title() }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label
+                                    for="priority"
+                                    class="form-label"
+                                >
+                                    Priority
+                                </label>
+
+                                <select
+                                    id="priority"
+                                    name="priority"
+                                    class="form-select"
+                                    required
+                                >
+                                    {% for priority in priorities %}
+                                        <option
+                                            value="{{ priority.value }}"
+                                            {% if current_priority == priority.value %}
+                                                selected
+                                            {% endif %}
+                                        >
+                                            {{ priority.value.title() }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label
+                                    for="task_type"
+                                    class="form-label"
+                                >
+                                    Task Type
+                                </label>
+
+                                <select
+                                    id="task_type"
+                                    name="task_type"
+                                    class="form-select"
+                                    required
+                                >
+                                    {% for item in task_types %}
+                                        <option
+                                            value="{{ item.value }}"
+                                            {% if current_task_type == item.value %}
+                                                selected
+                                            {% endif %}
+                                        >
+                                            {{ item.value.replace("_", " ").title() }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label
+                                    for="category"
+                                    class="form-label"
+                                >
+                                    Category
+                                </label>
+
+                                <input
+                                    id="category"
+                                    name="category"
+                                    type="text"
+                                    maxlength="100"
+                                    class="form-control"
+                                    value="{{ task.category or '' }}"
+                                >
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label
+                                    for="tags"
+                                    class="form-label"
+                                >
+                                    Tags
+                                </label>
+
+                                <input
+                                    id="tags"
+                                    name="tags"
+                                    type="text"
+                                    class="form-control"
+                                    value="{% if task.tags is string %}{{ task.tags }}{% else %}{{ task.tags | join(', ') }}{% endif %}"
+                                    placeholder="aws, training, cloud"
+                                >
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+
+                        <h2 class="h5 mb-3">
+                            Schedule
+                        </h2>
+
+                        <div class="row g-3">
+
+                            <div class="col-12 col-md-6">
+                                <label
+                                    for="planned_start_date"
+                                    class="form-label"
+                                >
+                                    Planned Start
+                                </label>
+
+                                <input
+                                    id="planned_start_date"
+                                    name="planned_start_date"
+                                    type="datetime-local"
+                                    class="form-control"
+                                    value="{% if task.planned_start_date %}{{ task.planned_start_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
+                                >
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label
+                                    for="planned_end_date"
+                                    class="form-label"
+                                >
+                                    Planned End
+                                </label>
+
+                                <input
+                                    id="planned_end_date"
+                                    name="planned_end_date"
+                                    type="datetime-local"
+                                    class="form-control"
+                                    value="{% if task.planned_end_date %}{{ task.planned_end_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
+                                >
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label
+                                    for="actual_start_date"
+                                    class="form-label"
+                                >
+                                    Actual Start
+                                </label>
+
+                                <input
+                                    id="actual_start_date"
+                                    name="actual_start_date"
+                                    type="datetime-local"
+                                    class="form-control"
+                                    value="{% if task.actual_start_date %}{{ task.actual_start_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
+                                >
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label
+                                    for="actual_end_date"
+                                    class="form-label"
+                                >
+                                    Actual End
+                                </label>
+
+                                <input
+                                    id="actual_end_date"
+                                    name="actual_end_date"
+                                    type="datetime-local"
+                                    class="form-control"
+                                    value="{% if task.actual_end_date %}{{ task.actual_end_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
+                                >
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label
+                                    for="due_date"
+                                    class="form-label"
+                                >
+                                    Due Date
+                                </label>
+
+                                <input
+                                    id="due_date"
+                                    name="due_date"
+                                    type="datetime-local"
+                                    class="form-control"
+                                    value="{% if task.due_date %}{{ task.due_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
+                                >
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-12 col-xl-4">
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+
+                        <h2 class="h5 mb-3">
+                            Effort and Progress
+                        </h2>
+
+                        <div class="mb-3">
+                            <label
+                                for="estimated_effort_hours"
+                                class="form-label"
+                            >
+                                Estimated Hours
+                            </label>
+
+                            <input
+                                id="estimated_effort_hours"
+                                name="estimated_effort_hours"
+                                type="number"
+                                min="0"
+                                step="0.25"
+                                class="form-control"
+                                value="{{ task.estimated_effort_hours if task.estimated_effort_hours is not none else '' }}"
+                            >
+                        </div>
+
+                        <div class="mb-3">
+                            <label
+                                for="actual_effort_hours"
+                                class="form-label"
+                            >
+                                Actual Hours
+                            </label>
+
+                            <input
+                                id="actual_effort_hours"
+                                name="actual_effort_hours"
+                                type="number"
+                                min="0"
+                                step="0.25"
+                                class="form-control"
+                                value="{{ task.actual_effort_hours if task.actual_effort_hours is not none else '' }}"
+                            >
+                        </div>
+
+                        <div class="mb-3">
+                            <label
+                                for="remaining_effort_hours"
+                                class="form-label"
+                            >
+                                Remaining Hours
+                            </label>
+
+                            <input
+                                id="remaining_effort_hours"
+                                name="remaining_effort_hours"
+                                type="number"
+                                min="0"
+                                step="0.25"
+                                class="form-control"
+                                value="{{ task.remaining_effort_hours if task.remaining_effort_hours is not none else '' }}"
+                            >
+                        </div>
+
+                        <div class="mb-0">
+                            <label
+                                for="progress_percentage"
+                                class="form-label"
+                            >
+                                Progress Percentage
+                            </label>
+
+                            <input
+                                id="progress_percentage"
+                                name="progress_percentage"
+                                type="number"
+                                min="0"
+                                max="100"
+                                class="form-control"
+                                value="{{ task.progress_percentage }}"
+                            >
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+
+                        <h2 class="h5 mb-3">
+                            Ownership
+                        </h2>
+
+                        <div class="mb-3">
+                            <label
+                                for="assigned_to"
+                                class="form-label"
+                            >
+                                Assigned To
+                            </label>
+
+                            <input
+                                id="assigned_to"
+                                name="assigned_to"
+                                type="text"
+                                maxlength="100"
+                                class="form-control"
+                                value="{{ task.assigned_to or '' }}"
+                            >
+                        </div>
+
+                        <div class="mb-0">
+                            <label
+                                for="team"
+                                class="form-label"
+                            >
+                                Team
+                            </label>
+
+                            <input
+                                id="team"
+                                name="team"
+                                type="text"
+                                maxlength="100"
+                                class="form-control"
+                                value="{{ task.team or '' }}"
+                            >
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+
+                        <div class="mb-3">
+                            <label
+                                for="blocked_reason"
+                                class="form-label"
+                            >
+                                Blocked Reason
+                            </label>
+
+                            <textarea
+                                id="blocked_reason"
+                                name="blocked_reason"
+                                rows="3"
+                                maxlength="1000"
+                                class="form-control"
+                            >{{ task.blocked_reason or '' }}</textarea>
+                        </div>
+
+                        <div class="mb-0">
+                            <label
+                                for="external_reference"
+                                class="form-label"
+                            >
+                                External Reference
+                            </label>
+
+                            <input
+                                id="external_reference"
+                                name="external_reference"
+                                type="text"
+                                maxlength="200"
+                                class="form-control"
+                                value="{{ task.external_reference or '' }}"
+                            >
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Save Changes
+                    </button>
+
+                    <a
+                        href="/tasks/{{ task.task_id }}"
+                        class="btn btn-outline-secondary"
+                    >
+                        Cancel
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </form>
+</div>
+
+{% endblock %}
