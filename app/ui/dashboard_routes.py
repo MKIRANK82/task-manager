@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.config.dependencies import get_task_service
 from app.models.task import (
+    TaskCreate,
     TaskPriority,
     TaskStatus,
     TaskType,
@@ -55,6 +56,124 @@ def task_tree(
         },
     )
 
+@router.get(
+    "/tasks/new",
+    response_class=HTMLResponse,
+    include_in_schema=False,
+)
+def create_task_page(
+    request: Request,
+) -> HTMLResponse:
+    parent_task_id_value = request.query_params.get(
+        "parent_task_id",
+        "0",
+    )
+
+    try:
+        parent_task_id = int(parent_task_id_value)
+    except ValueError:
+        parent_task_id = 0
+
+    return render_create_form(
+        request=request,
+        parent_task_id=parent_task_id,
+    )
+
+
+@router.post(
+    "/tasks/new",
+    response_class=HTMLResponse,
+    include_in_schema=False,
+)
+def create_task_from_form(
+    request: Request,
+    parent_task_id: int = Form(default=0),
+    short_description: str = Form(...),
+    description: str = Form(default=""),
+    task_status: str = Form(default="not_started"),
+    priority: str = Form(default="medium"),
+    task_type: str = Form(default="task"),
+    category: str = Form(default=""),
+    tags: str = Form(default=""),
+    planned_start_date: str = Form(default=""),
+    planned_end_date: str = Form(default=""),
+    due_date: str = Form(default=""),
+    estimated_effort_hours: str = Form(default=""),
+    assigned_to: str = Form(default="Kiran"),
+    team: str = Form(default=""),
+    created_by: str = Form(default="Kiran"),
+    service: TaskService = Depends(get_task_service),
+) -> HTMLResponse:
+    form_values = {
+        "parent_task_id": parent_task_id,
+        "short_description": short_description,
+        "description": description,
+        "task_status": task_status,
+        "priority": priority,
+        "task_type": task_type,
+        "category": category,
+        "tags": tags,
+        "planned_start_date": planned_start_date,
+        "planned_end_date": planned_end_date,
+        "due_date": due_date,
+        "estimated_effort_hours": estimated_effort_hours,
+        "assigned_to": assigned_to,
+        "team": team,
+        "created_by": created_by,
+    }
+
+    try:
+        cleaned_short_description = short_description.strip()
+
+        if not cleaned_short_description:
+            raise ValueError(
+                "Short description is required."
+            )
+
+        estimated_hours = parse_float(
+            estimated_effort_hours
+        )
+
+        task_create = TaskCreate(
+            parent_task_id=parent_task_id,
+            short_description=cleaned_short_description,
+            description=empty_to_none(description),
+            status=TaskStatus(task_status),
+            priority=TaskPriority(priority),
+            task_type=TaskType(task_type),
+            category=empty_to_none(category),
+            tags=parse_tags(tags),
+            planned_start_date=parse_datetime(
+                planned_start_date
+            ),
+            planned_end_date=parse_datetime(
+                planned_end_date
+            ),
+            due_date=parse_datetime(due_date),
+            estimated_effort_hours=estimated_hours,
+            actual_effort_hours=0,
+            remaining_effort_hours=estimated_hours,
+            progress_percentage=0,
+            assigned_to=empty_to_none(assigned_to),
+            team=empty_to_none(team),
+            created_by=created_by.strip() or "Kiran",
+        )
+
+        created_task = service.create(task_create)
+
+    except (ValueError, TypeError) as error:
+        return render_create_form(
+            request=request,
+            parent_task_id=parent_task_id,
+            form_values=form_values,
+            error_message=str(error),
+            status_code=400,
+        )
+
+    return RedirectResponse(
+        url=f"/tasks/{created_task.task_id}?created=true",
+        status_code=303,
+    )
 
 @router.get(
     "/tasks/{task_id}",
@@ -92,8 +211,14 @@ def task_details(
             "task": task_entity,
             "parent_task": parent_task,
             "child_tasks": service.get_children(task_id),
+
             "updated": (
                 request.query_params.get("updated")
+                == "true"
+            ),
+
+            "created": (
+                request.query_params.get("created")
                 == "true"
             ),
         },
@@ -275,6 +400,29 @@ def update_task_from_form(
         status_code=303,
     )
 
+def render_create_form(
+    *,
+    request: Request,
+    parent_task_id: int = 0,
+    form_values: dict[str, object] | None = None,
+    error_message: str | None = None,
+    status_code: int = 200,
+) -> HTMLResponse:
+    values = form_values or {}
+
+    return templates.TemplateResponse(
+        request=request,
+        name="task_create.html",
+        context={
+            "statuses": list(TaskStatus),
+            "priorities": list(TaskPriority),
+            "task_types": list(TaskType),
+            "parent_task_id": parent_task_id,
+            "form": values,
+            "error_message": error_message,
+        },
+        status_code=status_code,
+    )
 
 def render_edit_form(
     *,

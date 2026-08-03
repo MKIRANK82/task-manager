@@ -1,0 +1,483 @@
+{% extends "base.html" %}
+
+{% block title %}
+Create Task | Task Manager
+{% endblock %}
+
+{% block content %}
+
+<div class="task-form-page">
+
+    <div class="mb-4">
+        <a
+            href="/dashboard"
+            class="text-decoration-none small"
+        >
+            ← Back to Dashboard
+        </a>
+
+        <h1 class="h3 mt-2 mb-1">
+            Create New Task
+        </h1>
+
+        <p class="text-secondary mb-0">
+            Add a new top-level task or subtask.
+        </p>
+    </div>
+
+    {% if error_message %}
+        <div
+            class="alert alert-danger"
+            role="alert"
+        >
+            {{ error_message }}
+        </div>
+    {% endif %}
+
+    <form
+        method="post"
+        action="/tasks/new"
+    >
+        <div class="row g-4">
+
+            <div class="col-12 col-xl-8">
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+
+                        <h2 class="h5 mb-3">
+                            Basic Information
+                        </h2>
+
+                        <div class="row g-3">
+
+                            <div class="col-12 col-md-3">
+                                <label
+                                    for="parent_task_id"
+                                    class="form-label"
+                                >
+                                    Parent Task ID
+                                </label>
+
+                                <input
+                                    id="parent_task_id"
+                                    name="parent_task_id"
+                                    type="number"
+                                    min="0"
+                                    class="form-control"
+                                    value="{{ form.get(
+                                        'parent_task_id',
+                                        parent_task_id
+                                    ) }}"
+                                    required
+                                >
+
+                                <div class="form-text">
+                                    Use 0 for a top-level task.
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-9">
+                                <label
+                                    for="short_description"
+                                    class="form-label"
+                                >
+                                    Short Description
+                                </label>
+
+                                <input
+                                    id="short_description"
+                                    name="short_description"
+                                    type="text"
+                                    maxlength="200"
+                                    class="form-control"
+                                    value="{{ form.get(
+                                        'short_description',
+                                        ''
+                                    ) }}"
+                                    required
+                                    autofocus
+                                >
+                            </div>
+
+                            <div class="col-12">
+                                <label
+                                    for="description"
+                                    class="form-label"
+                                >
+                                    Description
+                                </label>
+
+                                <textarea
+                                    id="description"
+                                    name="description"
+                                    rows="6"
+                                    maxlength="5000"
+                                    class="form-control"
+                                >{{ form.get('description', '') }}</textarea>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label
+                                    for="task_status"
+                                    class="form-label"
+                                >
+                                    Status
+                                </label>
+
+                                {% set selected_status =
+                                    form.get(
+                                        'task_status',
+                                        'not_started'
+                                    )
+                                %}
+
+                                <select
+                                    id="task_status"
+                                    name="task_status"
+                                    class="form-select"
+                                    required
+                                >
+                                    {% for status in statuses %}
+                                        <option
+                                            value="{{ status.value }}"
+                                            {% if selected_status
+                                                == status.value %}
+                                                selected
+                                            {% endif %}
+                                        >
+                                            {{ status.value
+                                                .replace("_", " ")
+                                                .title() }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label
+                                    for="priority"
+                                    class="form-label"
+                                >
+                                    Priority
+                                </label>
+
+                                {% set selected_priority =
+                                    form.get(
+                                        'priority',
+                                        'medium'
+                                    )
+                                %}
+
+                                <select
+                                    id="priority"
+                                    name="priority"
+                                    class="form-select"
+                                    required
+                                >
+                                    {% for priority in priorities %}
+                                        <option
+                                            value="{{ priority.value }}"
+                                            {% if selected_priority
+                                                == priority.value %}
+                                                selected
+                                            {% endif %}
+                                        >
+                                            {{ priority.value.title() }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label
+                                    for="task_type"
+                                    class="form-label"
+                                >
+                                    Task Type
+                                </label>
+
+                                {% set selected_type =
+                                    form.get(
+                                        'task_type',
+                                        'task'
+                                    )
+                                %}
+
+                                <select
+                                    id="task_type"
+                                    name="task_type"
+                                    class="form-select"
+                                    required
+                                >
+                                    {% for item in task_types %}
+                                        <option
+                                            value="{{ item.value }}"
+                                            {% if selected_type
+                                                == item.value %}
+                                                selected
+                                            {% endif %}
+                                        >
+                                            {{ item.value
+                                                .replace("_", " ")
+                                                .title() }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label
+                                    for="category"
+                                    class="form-label"
+                                >
+                                    Category
+                                </label>
+
+                                <input
+                                    id="category"
+                                    name="category"
+                                    type="text"
+                                    maxlength="100"
+                                    class="form-control"
+                                    value="{{ form.get(
+                                        'category',
+                                        ''
+                                    ) }}"
+                                    placeholder="Learning, Work, Health"
+                                >
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label
+                                    for="tags"
+                                    class="form-label"
+                                >
+                                    Tags
+                                </label>
+
+                                <input
+                                    id="tags"
+                                    name="tags"
+                                    type="text"
+                                    class="form-control"
+                                    value="{{ form.get('tags', '') }}"
+                                    placeholder="aws, python, training"
+                                >
+
+                                <div class="form-text">
+                                    Separate tags with commas.
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+
+                        <h2 class="h5 mb-3">
+                            Schedule
+                        </h2>
+
+                        <div class="row g-3">
+
+                            <div class="col-12 col-md-6">
+                                <label
+                                    for="planned_start_date"
+                                    class="form-label"
+                                >
+                                    Planned Start
+                                </label>
+
+                                <input
+                                    id="planned_start_date"
+                                    name="planned_start_date"
+                                    type="datetime-local"
+                                    class="form-control"
+                                    value="{{ form.get(
+                                        'planned_start_date',
+                                        ''
+                                    ) }}"
+                                >
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label
+                                    for="planned_end_date"
+                                    class="form-label"
+                                >
+                                    Planned End
+                                </label>
+
+                                <input
+                                    id="planned_end_date"
+                                    name="planned_end_date"
+                                    type="datetime-local"
+                                    class="form-control"
+                                    value="{{ form.get(
+                                        'planned_end_date',
+                                        ''
+                                    ) }}"
+                                >
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label
+                                    for="due_date"
+                                    class="form-label"
+                                >
+                                    Due Date
+                                </label>
+
+                                <input
+                                    id="due_date"
+                                    name="due_date"
+                                    type="datetime-local"
+                                    class="form-control"
+                                    value="{{ form.get(
+                                        'due_date',
+                                        ''
+                                    ) }}"
+                                >
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-12 col-xl-4">
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+
+                        <h2 class="h5 mb-3">
+                            Effort
+                        </h2>
+
+                        <label
+                            for="estimated_effort_hours"
+                            class="form-label"
+                        >
+                            Estimated Hours
+                        </label>
+
+                        <input
+                            id="estimated_effort_hours"
+                            name="estimated_effort_hours"
+                            type="number"
+                            min="0"
+                            step="0.25"
+                            class="form-control"
+                            value="{{ form.get(
+                                'estimated_effort_hours',
+                                ''
+                            ) }}"
+                        >
+
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+
+                        <h2 class="h5 mb-3">
+                            Ownership
+                        </h2>
+
+                        <div class="mb-3">
+                            <label
+                                for="assigned_to"
+                                class="form-label"
+                            >
+                                Assigned To
+                            </label>
+
+                            <input
+                                id="assigned_to"
+                                name="assigned_to"
+                                type="text"
+                                maxlength="100"
+                                class="form-control"
+                                value="{{ form.get(
+                                    'assigned_to',
+                                    'Kiran'
+                                ) }}"
+                            >
+                        </div>
+
+                        <div class="mb-3">
+                            <label
+                                for="team"
+                                class="form-label"
+                            >
+                                Team
+                            </label>
+
+                            <input
+                                id="team"
+                                name="team"
+                                type="text"
+                                maxlength="100"
+                                class="form-control"
+                                value="{{ form.get(
+                                    'team',
+                                    ''
+                                ) }}"
+                            >
+                        </div>
+
+                        <div>
+                            <label
+                                for="created_by"
+                                class="form-label"
+                            >
+                                Created By
+                            </label>
+
+                            <input
+                                id="created_by"
+                                name="created_by"
+                                type="text"
+                                maxlength="100"
+                                class="form-control"
+                                value="{{ form.get(
+                                    'created_by',
+                                    'Kiran'
+                                ) }}"
+                                required
+                            >
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Create Task
+                    </button>
+
+                    <a
+                        href="/dashboard"
+                        class="btn btn-outline-secondary"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+    </form>
+
+</div>
+
+{% endblock %}

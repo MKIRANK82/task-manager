@@ -8,6 +8,15 @@ Task {{ task.task_number }} | Task Manager
 
 <div class="task-details-page">
 
+    {% if created %}
+        <div
+            class="alert alert-success"
+            role="alert"
+        >
+            Task created successfully.
+        </div>
+    {% endif %}
+
     {% if updated %}
         <div
             class="alert alert-success alert-dismissible fade show"

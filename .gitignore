@@ -32,3 +32,4 @@ htmlcov/
 # Generated data
 data/backups/
 data/exports/
+tasks.d*
