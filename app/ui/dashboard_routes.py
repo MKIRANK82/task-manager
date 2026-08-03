@@ -27,14 +27,26 @@ templates = Jinja2Templates(directory="templates")
 )
 def dashboard(
     request: Request,
-    service: TaskService = Depends(get_task_service),
+    view: str = "all",
+    service: TaskService = Depends(
+        get_task_service
+    ),
 ) -> HTMLResponse:
+    allowed_views = {
+        "all",
+        "today",
+    }
+
+    if view not in allowed_views:
+        view = "all"
+
     return templates.TemplateResponse(
         request=request,
         name="dashboard.html",
         context={
             "dashboard": service.get_dashboard(),
-            "task_tree": service.get_tree(),
+            "task_tree": service.get_tree(view),
+            "current_view": view,
         },
     )
 
@@ -46,13 +58,19 @@ def dashboard(
 )
 def task_tree(
     request: Request,
-    service: TaskService = Depends(get_task_service),
+    view: str = "all",
+    service: TaskService = Depends(
+        get_task_service
+    ),
 ) -> HTMLResponse:
+    if view not in {"all", "today"}:
+        view = "all"
+
     return templates.TemplateResponse(
         request=request,
         name="task_tree.html",
         context={
-            "task_tree": service.get_tree(),
+            "task_tree": service.get_tree(view),
         },
     )
 

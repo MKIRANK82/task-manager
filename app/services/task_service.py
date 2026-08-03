@@ -86,10 +86,18 @@ class TaskService:
             total_pages=total_pages,
         )
 
-    def get_tree(self) -> list[TaskTreeNode]:
+    def get_tree(
+    self,
+    view: str = "all",
+) -> list[TaskTreeNode]:
         task_entities = (
-            self.repository.get_all_for_tree()
+            self.repository.get_all_for_tree(view)
         )
+
+        if view == "today":
+            task_entities = self._include_ancestor_tasks(
+                task_entities
+            )
 
         nodes: dict[int, TaskTreeNode] = {
             entity.task_id: TaskTreeNode(
@@ -146,6 +154,41 @@ class TaskService:
         task_id: int,
     ) -> bool:
         return self.repository.delete(task_id)
+
+    def _include_ancestor_tasks(
+    self,
+    task_entities: list[TaskEntity],
+    ) -> list[TaskEntity]:
+        entities_by_id = {
+            task.task_id: task
+            for task in task_entities
+        }
+
+        tasks_to_check = list(task_entities)
+
+        while tasks_to_check:
+            current_task = tasks_to_check.pop()
+
+            if current_task.parent_task_id == 0:
+                continue
+
+            if (
+                current_task.parent_task_id
+                in entities_by_id
+            ):
+                continue
+
+            parent = self.repository.get_by_id(
+                current_task.parent_task_id
+            )
+
+            if parent is None:
+                continue
+
+            entities_by_id[parent.task_id] = parent
+            tasks_to_check.append(parent)
+
+        return list(entities_by_id.values())
 
     def _sort_tree(
         self,

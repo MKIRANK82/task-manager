@@ -121,11 +121,53 @@ class TaskRepository:
 
         return tasks, total
 
-    def get_all_for_tree(self) -> list[TaskEntity]:
-        statement = (
-            select(TaskEntity)
-            .where(TaskEntity.is_active.is_(True))
-            .order_by(TaskEntity.task_id)
+    def get_all_for_tree(
+    self,
+    view: str = "all",
+) -> list[TaskEntity]:
+        statement = select(TaskEntity).where(
+            TaskEntity.is_active.is_(True)
+        )
+
+        if view == "today":
+            now = datetime.now()
+
+            today_start = datetime.combine(
+                now.date(),
+                time.min,
+            )
+
+            tomorrow_start = today_start + timedelta(days=1)
+
+            statement = statement.where(
+                TaskEntity.status.notin_(
+                    [
+                        TaskStatus.COMPLETED.value,
+                        TaskStatus.CANCELLED.value,
+                    ]
+                ),
+                or_(
+                    (
+                        TaskEntity.planned_start_date
+                        >= today_start
+                    )
+                    & (
+                        TaskEntity.planned_start_date
+                        < tomorrow_start
+                    ),
+                    (
+                        TaskEntity.due_date
+                        >= today_start
+                    )
+                    & (
+                        TaskEntity.due_date
+                        < tomorrow_start
+                    ),
+                ),
+            )
+
+        statement = statement.order_by(
+            TaskEntity.task_id
         )
 
         return list(
