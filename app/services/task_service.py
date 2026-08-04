@@ -14,19 +14,36 @@ from app.models.task import (
 from app.models.task_entity import TaskEntity
 from app.repositories.task_repository import TaskRepository
 
+from app.services.task_activity_service import (
+    TaskActivityService,
+)
+
 
 class TaskService:
     def __init__(
         self,
         repository: TaskRepository,
-    ) -> None:
+        activity_service: TaskActivityService,
+        ) -> None:
+
         self.repository = repository
+        self.activity_service = activity_service
 
     def create(
         self,
         task: TaskCreate,
     ) -> TaskEntity:
-        return self.repository.create(task)
+        created_task = self.repository.create(task)
+
+        self._record_child_task_created(
+            created_task
+        )
+
+        self._propagate_planned_end_date(
+            created_task
+        )
+
+        return created_task
 
     def get_by_id(
         self,
@@ -144,11 +161,21 @@ class TaskService:
         task_id: int,
         task: TaskUpdate,
     ) -> TaskEntity | None:
-        return self.repository.update(
+        updated_task = self.repository.update(
             task_id,
             task,
         )
 
+        if updated_task is None:
+            return None
+
+        self._propagate_planned_end_date(
+            updated_task
+        )
+
+        return updated_task
+
+    
     def delete(
         self,
         task_id: int,
@@ -190,6 +217,93 @@ class TaskService:
 
         return list(entities_by_id.values())
 
+    def _record_child_task_created(
+        self,
+        child_task: TaskEntity,
+    ) -> None:
+        if child_task.parent_task_id == 0:
+            return
+
+        parent = self.repository.get_by_id(
+            child_task.parent_task_id
+        )
+
+        if parent is None:
+            return
+
+        self.activity_service.create_system_activity(
+            task_id=parent.task_id,
+            title="Subtask Added",
+            message=(
+                f"Task {child_task.task_number} "
+                f"(Task ID {child_task.task_id}) "
+                f"was added under this task.\n\n"
+                f"Description: "
+                f"{child_task.short_description}"
+            ),
+        )
+
+
+    def _propagate_planned_end_date(
+        self,
+        child_task: TaskEntity,
+    ) -> None:
+        child_end_date = (
+            child_task.planned_end_date
+        )
+
+        if child_end_date is None:
+            return
+
+        parent_task_id = (
+            child_task.parent_task_id
+        )
+
+        while parent_task_id != 0:
+            parent = self.repository.get_by_id(
+                parent_task_id
+            )
+
+            if parent is None:
+                break
+
+            next_parent_task_id = (
+                parent.parent_task_id
+            )
+
+            parent_end_date = (
+                parent.planned_end_date
+            )
+
+            if (
+                parent_end_date is not None
+                and child_end_date > parent_end_date
+            ):
+                old_end_date = parent_end_date
+
+                self.repository.update_planned_end_date(
+                    task_id=parent.task_id,
+                    planned_end_date=child_end_date,
+                )
+
+                self.activity_service.create_date_activity(
+                    task_id=parent.task_id,
+                    title="Planned End Date Extended",
+                    message=(
+                        "Planned end date changed "
+                        f"from {old_end_date:%d %b %Y %I:%M %p} "
+                        f"to {child_end_date:%d %b %Y %I:%M %p}.\n\n"
+                        "Reason: "
+                        f"Child task {child_task.task_number} "
+                        f"(Task ID {child_task.task_id}) "
+                        "has a later planned end date."
+                    ),
+                )
+
+            parent_task_id = (
+                next_parent_task_id
+            )
+
     def _sort_tree(
         self,
         nodes: list[TaskTreeNode],
@@ -203,6 +317,17 @@ class TaskService:
         for node in nodes:
             self._sort_tree(node.children)
 
+    def get_children(
+            self,
+            parent_task_id: int,
+        ) -> list[Task]:
+            return [
+                Task.model_validate(task)
+                for task in self.repository.get_children(
+                    parent_task_id
+                )
+            ]
+
     @staticmethod
     def _task_number_key(
         task_number: str,
@@ -212,13 +337,5 @@ class TaskService:
             for part in task_number.split(".")
         )
 
-    def get_children(
-    self,
-    parent_task_id: int,
-) -> list[Task]:
-        return [
-            Task.model_validate(task)
-            for task in self.repository.get_children(
-                parent_task_id
-            )
-        ]
+
+    

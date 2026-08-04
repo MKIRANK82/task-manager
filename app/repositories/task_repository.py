@@ -219,6 +219,28 @@ class TaskRepository:
 
         return task_entity
 
+    def update_planned_end_date(
+        self,
+        task_id: int,
+        planned_end_date: datetime,
+        ) -> TaskEntity | None:
+        task_entity = self.get_by_id(task_id)
+
+        if task_entity is None:
+            return None
+
+        task_entity.planned_end_date = planned_end_date
+        task_entity.updated_at = datetime.now()
+
+        try:
+            self.database.commit()
+            self.database.refresh(task_entity)
+        except Exception:
+            self.database.rollback()
+            raise
+
+        return task_entity
+
     def delete(
         self,
         task_id: int,
