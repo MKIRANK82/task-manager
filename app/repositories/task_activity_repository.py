@@ -1,0 +1,47 @@
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.models.task_activity import TaskActivityCreate
+from app.models.task_activity_entity import TaskActivityEntity
+
+
+class TaskActivityRepository:
+    def __init__(self, database: Session) -> None:
+        self.database = database
+
+    def create(
+        self,
+        activity: TaskActivityCreate,
+    ) -> TaskActivityEntity:
+        activity_entity = TaskActivityEntity(
+            **activity.model_dump()
+        )
+
+        try:
+            self.database.add(activity_entity)
+            self.database.commit()
+            self.database.refresh(activity_entity)
+        except Exception:
+            self.database.rollback()
+            raise
+
+        return activity_entity
+
+    def get_by_task_id(
+        self,
+        task_id: int,
+    ) -> list[TaskActivityEntity]:
+        statement = (
+            select(TaskActivityEntity)
+            .where(
+                TaskActivityEntity.task_id == task_id
+            )
+            .order_by(
+                TaskActivityEntity.created_at.desc(),
+                TaskActivityEntity.activity_id.desc(),
+            )
+        )
+
+        return list(
+            self.database.scalars(statement).all()
+        )

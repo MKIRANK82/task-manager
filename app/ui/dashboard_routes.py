@@ -4,7 +4,10 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from app.config.dependencies import get_task_service
+from app.config.dependencies import (
+    get_task_activity_service,
+    get_task_service,
+)
 from app.models.task import (
     TaskCreate,
     TaskPriority,
@@ -14,6 +17,14 @@ from app.models.task import (
 )
 from app.services.task_service import TaskService
 
+from app.models.task_activity import (
+    ActivityType,
+    TaskActivityCreate,
+)
+
+from app.services.task_activity_service import (
+    TaskActivityService,
+)
 
 router = APIRouter(tags=["UI"])
 
@@ -81,6 +92,7 @@ def task_tree(
 )
 def create_task_page(
     request: Request,
+    service: TaskService = Depends(get_task_service),
 ) -> HTMLResponse:
     parent_task_id_value = request.query_params.get(
         "parent_task_id",
@@ -92,11 +104,19 @@ def create_task_page(
     except ValueError:
         parent_task_id = 0
 
+    parent_task = None
+
+    if parent_task_id != 0:
+        parent_task = service.get_by_id(parent_task_id)
+
+        if parent_task is None:
+            parent_task_id = 0
+
     return render_create_form(
         request=request,
         parent_task_id=parent_task_id,
+        parent_task=parent_task,
     )
-
 
 @router.post(
     "/tasks/new",
@@ -180,18 +200,25 @@ def create_task_from_form(
         created_task = service.create(task_create)
 
     except (ValueError, TypeError) as error:
+        parent_task = None
+
+        if parent_task_id != 0:
+            parent_task = service.get_by_id(parent_task_id)
+
         return render_create_form(
             request=request,
             parent_task_id=parent_task_id,
+            parent_task=parent_task,
             form_values=form_values,
             error_message=str(error),
             status_code=400,
         )
-
     return RedirectResponse(
         url=f"/tasks/{created_task.task_id}?created=true",
         status_code=303,
     )
+
+
 
 @router.get(
     "/tasks/{task_id}",
@@ -202,6 +229,9 @@ def task_details(
     request: Request,
     task_id: int,
     service: TaskService = Depends(get_task_service),
+    activity_service: TaskActivityService = Depends(
+        get_task_activity_service
+    ),
 ) -> HTMLResponse:
     task_entity = service.get_by_id(task_id)
 
@@ -229,19 +259,73 @@ def task_details(
             "task": task_entity,
             "parent_task": parent_task,
             "child_tasks": service.get_children(task_id),
-
+            "activities": (
+                activity_service.get_by_task_id(task_id)
+            ),
             "updated": (
                 request.query_params.get("updated")
                 == "true"
             ),
-
             "created": (
                 request.query_params.get("created")
+                == "true"
+            ),
+            "comment_added": (
+                request.query_params.get("comment_added")
                 == "true"
             ),
         },
     )
 
+@router.post(
+    "/tasks/{task_id}/activities",
+    response_class=HTMLResponse,
+    include_in_schema=False,
+)
+def add_task_activity(
+    request: Request,
+    task_id: int,
+    message: str = Form(...),
+    created_by: str = Form(default="Kiran"),
+    service: TaskService = Depends(get_task_service),
+    activity_service: TaskActivityService = Depends(
+        get_task_activity_service
+    ),
+) -> HTMLResponse:
+    task = service.get_by_id(task_id)
+
+    if task is None:
+        return templates.TemplateResponse(
+            request=request,
+            name="task_not_found.html",
+            context={
+                "task_id": task_id,
+            },
+            status_code=404,
+        )
+
+    cleaned_message = message.strip()
+
+    if not cleaned_message:
+        return RedirectResponse(
+            url=f"/tasks/{task_id}?comment_error=true",
+            status_code=303,
+        )
+
+    activity_service.create(
+        TaskActivityCreate(
+            task_id=task_id,
+            activity_type=ActivityType.COMMENT,
+            title="Comment",
+            message=cleaned_message,
+            created_by=created_by.strip() or "Kiran",
+        )
+    )
+
+    return RedirectResponse(
+        url=f"/tasks/{task_id}?comment_added=true",
+        status_code=303,
+    )
 
 @router.get(
     "/tasks/{task_id}/edit",
@@ -422,6 +506,7 @@ def render_create_form(
     *,
     request: Request,
     parent_task_id: int = 0,
+    parent_task: object | None = None,
     form_values: dict[str, object] | None = None,
     error_message: str | None = None,
     status_code: int = 200,
@@ -436,6 +521,7 @@ def render_create_form(
             "priorities": list(TaskPriority),
             "task_types": list(TaskType),
             "parent_task_id": parent_task_id,
+            "parent_task": parent_task,
             "form": values,
             "error_message": error_message,
         },

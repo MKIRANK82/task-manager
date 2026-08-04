@@ -62,12 +62,23 @@ Task {{ task.task_number }} | Task Manager
             </div>
         </div>
 
-        <a
-            href="/tasks/{{ task.task_id }}/edit"
-            class="btn btn-primary"
-        >
-            Edit Task
-        </a>
+        <div class="d-flex gap-2">
+
+                <a
+                    href="/tasks/new?parent_task_id={{ task.task_id }}"
+                    class="btn btn-outline-success"
+                >
+                    + Subtask
+                </a>
+
+                <a
+                    href="/tasks/{{ task.task_id }}/edit"
+                    class="btn btn-primary"
+                >
+                    Edit Task
+                </a>
+
+        </div>
     </div>
 
     <div class="row g-4">
@@ -243,6 +254,130 @@ Task {{ task.task_number }} | Task Manager
 
                 </div>
             </div>
+
+            <div class="card border-0 shadow-sm mt-4">
+    <div class="card-body">
+
+        <h2 class="h5 mb-3">
+            Activity
+        </h2>
+
+        {% if comment_added %}
+            <div
+                class="alert alert-success"
+                role="alert"
+            >
+                Comment added successfully.
+            </div>
+        {% endif %}
+
+        <form
+            method="post"
+            action="/tasks/{{ task.task_id }}/activities"
+            class="mb-4"
+        >
+            <div class="mb-3">
+                <label
+                    for="activity_message"
+                    class="form-label"
+                >
+                    Add Comment
+                </label>
+
+                <textarea
+                    id="activity_message"
+                    name="message"
+                    rows="3"
+                    maxlength="5000"
+                    class="form-control"
+                    placeholder="Add progress, decision, blocker or other notes"
+                    required
+                ></textarea>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <input
+                    type="hidden"
+                    name="created_by"
+                    value="Kiran"
+                >
+
+                <button
+                    type="submit"
+                    class="btn btn-primary btn-sm"
+                >
+                    Add Comment
+                </button>
+
+            </div>
+        </form>
+
+        {% if activities %}
+
+            <div class="activity-timeline">
+
+                {% for activity in activities %}
+
+                    <div class="activity-entry">
+
+                        <div class="activity-marker"></div>
+
+                        <div class="activity-content">
+
+                            <div
+                                class="d-flex
+                                       flex-wrap
+                                       justify-content-between
+                                       gap-2"
+                            >
+                                <div>
+                                    <span
+                                        class="activity-type
+                                               activity-type-{{ activity.activity_type.value }}"
+                                    >
+                                        {{ activity.activity_type.value.title() }}
+                                    </span>
+
+                                    {% if activity.title %}
+                                        <strong class="ms-2">
+                                            {{ activity.title }}
+                                        </strong>
+                                    {% endif %}
+                                </div>
+
+                                <span class="activity-time">
+                                    {{ activity.created_at.strftime(
+                                        "%d %b %Y %I:%M %p"
+                                    ) }}
+                                </span>
+                            </div>
+
+                            <p class="activity-message mb-2">
+                                {{ activity.message }}
+                            </p>
+
+                            <div class="activity-author">
+                                {{ activity.created_by }}
+                            </div>
+
+                        </div>
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p class="text-secondary mb-0">
+                No activity has been recorded for this task.
+            </p>
+
+        {% endif %}
+
+    </div>
+</div>
 
         </div>
 

@@ -51,33 +51,49 @@ Create Task | Task Manager
 
                         <div class="row g-3">
 
-                            <div class="col-12 col-md-3">
-                                <label
-                                    for="parent_task_id"
-                                    class="form-label"
-                                >
-                                    Parent Task ID
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">
+                                    Parent Task
                                 </label>
 
                                 <input
-                                    id="parent_task_id"
+                                    type="hidden"
                                     name="parent_task_id"
-                                    type="number"
-                                    min="0"
-                                    class="form-control"
-                                    value="{{ form.get(
-                                        'parent_task_id',
-                                        parent_task_id
-                                    ) }}"
-                                    required
+                                    value="{{ parent_task_id }}"
                                 >
 
-                                <div class="form-text">
-                                    Use 0 for a top-level task.
-                                </div>
+                                {% if parent_task %}
+                                    <div class="parent-task-display">
+                                        <div class="parent-task-number">
+                                            {{ parent_task.task_number }}
+                                        </div>
+
+                                        <div class="parent-task-description">
+                                            {{ parent_task.short_description }}
+                                        </div>
+                                    </div>
+
+                                    <div class="form-text">
+                                        This task will be created as a subtask.
+                                    </div>
+                                {% else %}
+                                    <div class="parent-task-display">
+                                        <div class="parent-task-number">
+                                            0
+                                        </div>
+
+                                        <div class="parent-task-description">
+                                            Top-level task
+                                        </div>
+                                    </div>
+
+                                    <div class="form-text">
+                                        This task will be created at the top level.
+                                    </div>
+                                {% endif %}
                             </div>
 
-                            <div class="col-12 col-md-9">
+                            <div class="col-12 col-md-8">
                                 <label
                                     for="short_description"
                                     class="form-label"

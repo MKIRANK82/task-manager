@@ -363,3 +363,154 @@ body {
 .task-form-page textarea {
     resize: vertical;
 }
+
+.activity-timeline {
+    position: relative;
+    margin-top: 10px;
+}
+
+.activity-entry {
+    position: relative;
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 12px;
+    padding-bottom: 22px;
+}
+
+.activity-entry:not(:last-child)::before {
+    position: absolute;
+    top: 14px;
+    bottom: 0;
+    left: 6px;
+    width: 2px;
+    background: #e2e8f0;
+    content: "";
+}
+
+.activity-marker {
+    position: relative;
+    z-index: 1;
+    width: 14px;
+    height: 14px;
+    margin-top: 4px;
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+    background: #0d6efd;
+    box-shadow: 0 0 0 1px #94a3b8;
+}
+
+.activity-content {
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.activity-type {
+    display: inline-block;
+    padding: 3px 7px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.activity-type-comment {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.activity-type-system {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.activity-type-status {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.activity-type-date {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.activity-type-priority {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.activity-type-completion {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.activity-type-ai {
+    background: #f3e8ff;
+    color: #7e22ce;
+}
+
+.activity-time {
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+.activity-message {
+    margin-top: 10px;
+    color: #1f2937;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.activity-author {
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.subtask-link {
+    flex-shrink: 0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #15803d;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.subtask-link:hover {
+    background: #dcfce7;
+    color: #166534;
+    text-decoration: none;
+}
+
+.parent-task-display {
+    display: flex;
+    align-items: center;
+    min-height: 38px;
+    overflow: hidden;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    background: #f8fafc;
+}
+
+.parent-task-number {
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    min-width: 65px;
+    padding: 8px 12px;
+    background: #e2e8f0;
+    color: #0d6efd;
+    font-weight: 700;
+}
+
+.parent-task-description {
+    overflow: hidden;
+    padding: 8px 12px;
+    color: #1f2937;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
