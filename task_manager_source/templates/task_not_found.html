@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}
+Task Not Found
+{% endblock %}
+
+{% block content %}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5">
+
+        <h1 class="h3">Task not found</h1>
+
+        <p class="text-secondary">
+            Task ID {{ task_id }} does not exist or was deleted.
+        </p>
+
+        <a
+            href="/dashboard"
+            class="btn btn-primary"
+        >
+            Back to Dashboard
+        </a>
+
+    </div>
+</div>
+
+{% endblock %}

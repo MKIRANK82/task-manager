@@ -1,0 +1,700 @@
+{% extends "base.html" %}
+
+{% block title %}
+Task {{ task.task_number }} | Task Manager
+{% endblock %}
+
+{% block content %}
+
+<div class="task-details-page">
+
+    {% if deleted %}
+    <div
+        class="alert alert-success"
+        role="alert"
+    >
+        {{ deleted_count }} task(s) were permanently deleted.
+    </div>
+    {% endif %}
+
+    {% if delete_error %}
+        <div
+            class="alert alert-danger"
+            role="alert"
+        >
+            {{ delete_error }}
+        </div>
+    {% endif %}
+
+    {% if created %}
+        <div
+            class="alert alert-success"
+            role="alert"
+        >
+            Task created successfully.
+        </div>
+    {% endif %}
+
+    {% if updated %}
+        <div
+            class="alert alert-success alert-dismissible fade show"
+            role="alert"
+        >
+            Task updated successfully.
+
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"
+            ></button>
+        </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <a
+                href="/dashboard"
+                class="text-decoration-none small"
+            >
+                ← Back to Dashboard
+            </a>
+
+            <div class="d-flex align-items-center gap-3 mt-2">
+                <h1 class="h3 mb-0">
+                    {{ task.task_number }}
+                    {{ task.short_description }}
+                </h1>
+
+                <span
+                    class="status-badge status-{{ task.status }}"
+                >
+                    {{ task.status.replace("_", " ").title() }}
+                </span>
+
+                <span
+                    class="priority-badge priority-{{ task.priority }}"
+                >
+                    {{ task.priority.title() }}
+                </span>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+
+             <a
+                href="/tasks/new?parent_task_id={{ task.task_id }}"
+                class="btn btn-outline-success"
+            >
+                + Subtask
+            </a>
+
+            <a
+                href="/tasks/{{ task.task_id }}/edit"
+                class="btn btn-primary"
+            >
+                Edit Task
+            </a>
+
+            {% set task_status_value =
+                task.status.value
+                if task.status.value is defined
+                else task.status
+            %}
+
+            {% if task_status_value in [
+                "closed",
+                "cancelled",
+                "completed"
+            ] %}
+
+                {% if can_delete %}
+                    <button
+                        type="button"
+                        class="btn btn-danger"
+                        data-bs-toggle="modal"
+                        data-bs-target="#deleteTaskModal"
+                    >
+                        Delete
+                    </button>
+                {% else %}
+                    <button
+                        type="button"
+                        class="btn btn-outline-danger"
+                        disabled
+                        title="{{ delete_reason }}"
+                    >
+                        Delete
+                    </button>
+                    {% if delete_reason %}
+                        <div class="text-danger small mt-2">
+                            {{ delete_reason }}
+                        </div>
+                    {% endif %}
+                {% endif %}
+
+            {% endif %}
+
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-12 col-xl-8">
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+
+                    <h2 class="h5 mb-3">
+                        Description
+                    </h2>
+
+                    {% if task.description %}
+                        <p class="mb-0 task-long-description">
+                            {{ task.description }}
+                        </p>
+                    {% else %}
+                        <p class="text-secondary mb-0">
+                            No detailed description available.
+                        </p>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+
+                    <h2 class="h5 mb-3">
+                        Schedule
+                    </h2>
+
+                    <div class="detail-grid">
+
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                Planned Start
+                            </span>
+
+                            <span class="detail-value">
+                                {% if task.planned_start_date %}
+                                    {{ task.planned_start_date.strftime(
+                                        "%d %b %Y %I:%M %p"
+                                    ) }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                Planned End
+                            </span>
+
+                            <span class="detail-value">
+                                {% if task.planned_end_date %}
+                                    {{ task.planned_end_date.strftime(
+                                        "%d %b %Y %I:%M %p"
+                                    ) }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                Actual Start
+                            </span>
+
+                            <span class="detail-value">
+                                {% if task.actual_start_date %}
+                                    {{ task.actual_start_date.strftime(
+                                        "%d %b %Y %I:%M %p"
+                                    ) }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                Actual End
+                            </span>
+
+                            <span class="detail-value">
+                                {% if task.actual_end_date %}
+                                    {{ task.actual_end_date.strftime(
+                                        "%d %b %Y %I:%M %p"
+                                    ) }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                Due Date
+                            </span>
+
+                            <span class="detail-value">
+                                {% if task.due_date %}
+                                    {{ task.due_date.strftime(
+                                        "%d %b %Y %I:%M %p"
+                                    ) }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </span>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+
+                    <h2 class="h5 mb-3">
+                        Child Tasks
+                    </h2>
+
+                    {% if child_tasks %}
+
+                        <div class="list-group list-group-flush">
+
+                            {% for child in child_tasks %}
+
+                                <a
+                                    href="/tasks/{{ child.task_id }}"
+                                    class="list-group-item
+                                           list-group-item-action
+                                           d-flex
+                                           justify-content-between
+                                           align-items-center"
+                                >
+                                    <div>
+                                        <strong>
+                                            {{ child.task_number }}
+                                        </strong>
+
+                                        <span class="ms-2">
+                                            {{ child.short_description }}
+                                        </span>
+                                    </div>
+
+                                    <span
+                                        class="status-badge
+                                               status-{{ child.status.value }}"
+                                    >
+                                        {{ child.status.value
+                                            .replace("_", " ")
+                                            .title() }}
+                                    </span>
+                                </a>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% else %}
+
+                        <p class="text-secondary mb-0">
+                            This task has no child tasks.
+                        </p>
+
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mt-4">
+    <div class="card-body">
+
+        <h2 class="h5 mb-3">
+            Activity
+        </h2>
+
+        {% if comment_added %}
+            <div
+                class="alert alert-success"
+                role="alert"
+            >
+                Comment added successfully.
+            </div>
+        {% endif %}
+
+        <form
+            method="post"
+            action="/tasks/{{ task.task_id }}/activities"
+            class="mb-4"
+        >
+            <div class="mb-3">
+                <label
+                    for="activity_message"
+                    class="form-label"
+                >
+                    Add Comment
+                </label>
+
+                <textarea
+                    id="activity_message"
+                    name="message"
+                    rows="3"
+                    maxlength="5000"
+                    class="form-control"
+                    placeholder="Add progress, decision, blocker or other notes"
+                    required
+                ></textarea>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <input
+                    type="hidden"
+                    name="created_by"
+                    value="Kiran"
+                >
+
+                <button
+                    type="submit"
+                    class="btn btn-primary btn-sm"
+                >
+                    Add Comment
+                </button>
+
+            </div>
+        </form>
+
+        {% if activities %}
+
+            <div class="activity-timeline">
+
+                {% for activity in activities %}
+
+                    <div class="activity-entry">
+
+                        <div class="activity-marker"></div>
+
+                        <div class="activity-content">
+
+                            <div
+                                class="d-flex
+                                       flex-wrap
+                                       justify-content-between
+                                       gap-2"
+                            >
+                                <div>
+                                    <span
+                                        class="activity-type
+                                               activity-type-{{ activity.activity_type.value }}"
+                                    >
+                                        {{ activity.activity_type.value.title() }}
+                                    </span>
+
+                                    {% if activity.title %}
+                                        <strong class="ms-2">
+                                            {{ activity.title }}
+                                        </strong>
+                                    {% endif %}
+                                </div>
+
+                                <span class="activity-time">
+                                    {{ activity.created_at.strftime(
+                                        "%d %b %Y %I:%M %p"
+                                    ) }}
+                                </span>
+                            </div>
+
+                            <p class="activity-message mb-2">
+                                {{ activity.message }}
+                            </p>
+
+                            <div class="activity-author">
+                                {{ activity.created_by }}
+                            </div>
+
+                        </div>
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p class="text-secondary mb-0">
+                No activity has been recorded for this task.
+            </p>
+
+        {% endif %}
+
+    </div>
+</div>
+
+        </div>
+
+        <div class="col-12 col-xl-4">
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+
+                    <h2 class="h5 mb-3">
+                        Task Information
+                    </h2>
+
+                    <div class="side-detail-list">
+
+                        <div class="side-detail-item">
+                            <span>Task ID</span>
+                            <strong>{{ task.task_id }}</strong>
+                        </div>
+
+                        <div class="side-detail-item">
+                            <span>Task Number</span>
+                            <strong>{{ task.task_number }}</strong>
+                        </div>
+
+                        <div class="side-detail-item">
+                            <span>Parent</span>
+
+                            {% if parent_task %}
+                                <a
+                                    href="/tasks/{{ parent_task.task_id }}"
+                                >
+                                    {{ parent_task.task_number }}
+                                    {{ parent_task.short_description }}
+                                </a>
+                            {% else %}
+                                <strong>Top-level task</strong>
+                            {% endif %}
+                        </div>
+
+                        <div class="side-detail-item">
+                            <span>Category</span>
+
+                            <strong>
+                                {{ task.category or "—" }}
+                            </strong>
+                        </div>
+
+                        <div class="side-detail-item">
+                            <span>Type</span>
+
+                            <strong>
+                                {{ task.task_type
+                                    .replace("_", " ")
+                                    .title() }}
+                            </strong>
+                        </div>
+
+                        <div class="side-detail-item">
+                            <span>Assigned To</span>
+
+                            <strong>
+                                {{ task.assigned_to or "—" }}
+                            </strong>
+                        </div>
+
+                        <div class="side-detail-item">
+                            <span>Team</span>
+
+                            <strong>
+                                {{ task.team or "—" }}
+                            </strong>
+                        </div>
+
+                        <div class="side-detail-item">
+                            <span>Created By</span>
+
+                            <strong>
+                                {{ task.created_by }}
+                            </strong>
+                        </div>
+
+                        <div class="side-detail-item">
+                            <span>Created At</span>
+
+                            <strong>
+                                {{ task.created_at.strftime(
+                                    "%d %b %Y %I:%M %p"
+                                ) }}
+                            </strong>
+                        </div>
+
+                        <div class="side-detail-item">
+                            <span>Updated At</span>
+
+                            <strong>
+                                {{ task.updated_at.strftime(
+                                    "%d %b %Y %I:%M %p"
+                                ) }}
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+
+                    <h2 class="h5 mb-3">
+                        Effort and Progress
+                    </h2>
+
+                    <div class="progress mb-3">
+                        <div
+                            class="progress-bar"
+                            role="progressbar"
+                            style="width: {{ task.progress_percentage }}%;"
+                            aria-valuenow="{{ task.progress_percentage }}"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                        >
+                            {{ task.progress_percentage }}%
+                        </div>
+                    </div>
+
+                    <div class="side-detail-list">
+
+                        <div class="side-detail-item">
+                            <span>Estimated</span>
+
+                            <strong>
+                                {{ task.estimated_effort_hours or 0 }}
+                                hours
+                            </strong>
+                        </div>
+
+                        <div class="side-detail-item">
+                            <span>Actual</span>
+
+                            <strong>
+                                {{ task.actual_effort_hours or 0 }}
+                                hours
+                            </strong>
+                        </div>
+
+                        <div class="side-detail-item">
+                            <span>Remaining</span>
+
+                            <strong>
+                                {{ task.remaining_effort_hours or 0 }}
+                                hours
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+
+                    <h2 class="h5 mb-3">
+                        Tags
+                    </h2>
+
+                    {% if task.tags %}
+
+                        <div class="d-flex flex-wrap gap-2">
+
+                            {% for tag in task.tags %}
+                                <span class="tag-badge">
+                                    {{ tag }}
+                                </span>
+                            {% endfor %}
+
+                        </div>
+
+                    {% else %}
+
+                        <p class="text-secondary mb-0">
+                            No tags added.
+                        </p>
+
+                    {% endif %}
+
+                    {% if task.blocked_reason %}
+
+                        <hr>
+
+                        <h3 class="h6 text-danger">
+                            Blocked Reason
+                        </h3>
+
+                        <p class="mb-0">
+                            {{ task.blocked_reason }}
+                        </p>
+
+                    {% endif %}
+
+                    {% if task.external_reference %}
+
+                        <hr>
+
+                        <h3 class="h6">
+                            External Reference
+                        </h3>
+
+                        <p class="mb-0">
+                            {{ task.external_reference }}
+                        </p>
+
+                    {% endif %}
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% if can_delete %}
+    <form
+        method="post"
+        action="/tasks/{{ task.task_id }}/delete"
+        class="d-inline"
+        onsubmit="return confirm(
+            'Permanently delete this task and all its subtasks?'
+        );"
+    >
+        <input
+            type="hidden"
+            name="deleted_by"
+            value="Kiran"
+        >
+
+        <button
+            type="submit"
+            class="btn btn-danger"
+        >
+            Delete
+        </button>
+    </form>
+{% else %}
+    <button
+        type="button"
+        class="btn btn-outline-danger"
+        disabled
+        title="{{ delete_reason }}"
+    >
+        Delete
+    </button>
+
+    {% if delete_reason %}
+        <div class="text-danger small mt-2">
+            {{ delete_reason }}
+        </div>
+    {% endif %}
+{% endif %}
+
+{% endblock %}
