@@ -18,8 +18,8 @@ $IncludeExtensions = @(
     "*.md",
     "*.txt",
     "*.yaml",
-    "*.yml",
-    "*.ps1"
+    "*.yml"
+    
 )
 
 $ExcludeFolders = @(

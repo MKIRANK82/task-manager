@@ -5,9 +5,19 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+
 from app.config.dependencies import (
     get_task_activity_service,
+    get_task_dependency_service,
     get_task_service,
+)
+
+from app.models.task_dependency import (
+    TaskDependencyCreate,
+)
+
+from app.services.task_dependency_service import (
+    TaskDependencyService,
 )
 from app.models.task import (
     TaskCreate,
@@ -235,6 +245,9 @@ def task_details(
     activity_service: TaskActivityService = Depends(
         get_task_activity_service
     ),
+    dependency_service: TaskDependencyService = Depends(
+        get_task_dependency_service
+    ),
 ) -> HTMLResponse:
     task_entity = service.get_by_id(task_id)
 
@@ -254,7 +267,23 @@ def task_details(
         parent_task = service.get_by_id(
             task_entity.parent_task_id
         )
+    dependencies = (
+        dependency_service.get_dependencies(
+            task_id
+        )
+    )
 
+    required_by = (
+        dependency_service.get_required_by(
+            task_id
+        )
+    )
+
+    dependency_state = (
+        dependency_service.get_dependency_state(
+            task_id
+        )
+    )
     return templates.TemplateResponse(
         request=request,
         name="task_details.html",
@@ -265,6 +294,11 @@ def task_details(
             "activities": (
                 activity_service.get_by_task_id(task_id)
             ),
+            # Dependency information
+            "dependencies": dependencies,
+            "required_by": required_by,
+            "dependency_state": dependency_state,
+
             "updated": (
                 request.query_params.get("updated")
                 == "true"
@@ -299,6 +333,9 @@ def task_details(
                 ),
         },
     )
+
+
+
 @router.post(
     "/tasks/{task_id}/delete",
     response_class=HTMLResponse,
@@ -705,3 +742,75 @@ def build_form_task(
     task.status = form_values["task_status"]
 
     return task
+
+@router.post(
+    "/tasks/{task_id}/dependencies",
+    response_class=HTMLResponse,
+    include_in_schema=False,
+)
+def add_task_dependency(
+    task_id: int,
+    depends_on_task_id: int = Form(...),
+    created_by: str = Form(
+        default="Kiran"
+    ),
+    dependency_service: (
+        TaskDependencyService
+    ) = Depends(
+        get_task_dependency_service
+    ),
+) -> HTMLResponse:
+
+    try:
+        dependency_service.add_dependency(
+            TaskDependencyCreate(
+                task_id=task_id,
+                depends_on_task_id=(
+                    depends_on_task_id
+                ),
+                created_by=(
+                    created_by.strip()
+                    or "Kiran"
+                ),
+            )
+        )
+
+    except ValueError as error:
+
+        return RedirectResponse(
+            url=(
+                f"/tasks/{task_id}"
+                f"?dependency_error="
+                f"{quote(str(error))}"
+            ),
+            status_code=303,
+        )
+
+    return RedirectResponse(
+        url=(
+            f"/tasks/{task_id}"
+            "?dependency_added=true"
+        ),
+        status_code=303,
+    )
+
+@router.post(
+    "/tasks/{task_id}/dependencies/{dependency_id}/delete",
+    include_in_schema=False,
+)
+def remove_task_dependency(
+    task_id: int,
+    dependency_id: int,
+    dependency_service: TaskDependencyService = Depends(
+        get_task_dependency_service
+    ),
+):
+    dependency_service.remove_dependency(
+        dependency_id=dependency_id,
+        removed_by="Kiran",
+    )
+
+    return RedirectResponse(
+        url=f"/tasks/{task_id}?dependency_removed=true",
+        status_code=303,
+    )

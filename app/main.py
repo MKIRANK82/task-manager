@@ -26,6 +26,10 @@ from app.ui.task_excel_routes import (
     router as task_excel_router,
 )
 
+from app.models.task_dependency_entity import (
+    TaskDependencyEntity,
+)
+
 Base.metadata.create_all(bind=engine)
 
 

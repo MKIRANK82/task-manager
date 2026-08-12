@@ -28,22 +28,34 @@ from app.services.task_delete_archive_service import (
     TaskDeleteArchiveService,
 )
 
+from app.services.task_dependency_service import (
+    TaskDependencyService,
+)
+
 
 class TaskService:
     def __init__(
-    self,
-    repository: TaskRepository,
-    activity_service: TaskActivityService,
-    delete_archive_service: (
-        TaskDeleteArchiveService | None
-    ) = None,
+        self,
+        repository: TaskRepository,
+        activity_service: TaskActivityService,
+        delete_archive_service=None,
+        dependency_service: (
+            TaskDependencyService | None
+        ) = None,
     ) -> None:
+
         self.repository = repository
         self.activity_service = activity_service
+
         self.delete_archive_service = (
             delete_archive_service
             or TaskDeleteArchiveService()
         )
+
+        self.dependency_service = (
+            dependency_service
+        )
+
 
     def create(
         self,
@@ -132,15 +144,33 @@ class TaskService:
                 task_entities
             )
 
-        nodes: dict[int, TaskTreeNode] = {
-            entity.task_id: TaskTreeNode(
+       
+
+        
+        nodes: dict[int, TaskTreeNode] = {}
+
+        for entity in task_entities:
+
+            dependency_state = "none"
+
+            if self.dependency_service is not None:
+                dependency_state = (
+                    self.dependency_service
+                    .get_dependency_state(
+                        entity.task_id
+                    )
+                )
+
+            nodes[entity.task_id] = TaskTreeNode(
                 **Task.model_validate(
                     entity
                 ).model_dump(),
                 children=[],
+                dependency_state=(
+                    dependency_state
+                ),
             )
-            for entity in task_entities
-        }
+       
 
         roots: list[TaskTreeNode] = []
 
@@ -451,6 +481,13 @@ class TaskService:
         database = self.repository.database
 
         try:
+            if self.dependency_service is not None:
+                self.dependency_service\
+                    .dependency_repository\
+                    .delete_for_task_ids(
+                        task_ids,
+                        commit=False,
+                    )
             self.activity_service.repository.delete_by_task_ids(
                 task_ids,
                 commit=False,

@@ -3,11 +3,21 @@
     {% for task in tasks %}
 
         <div
-            class="task-row
-            {% if task.planned_start_date
-                and task.planned_start_date.date() == today_date %}
-                task-starts-today
-            {% endif %}"
+    class="
+        task-row
+
+        {% if task.dependency_state == 'waiting' %}
+            task-dependency-waiting
+        {% elif task.dependency_state == 'delayed' %}
+            task-dependency-delayed
+        {% elif task.dependency_state == 'cancelled' %}
+            task-dependency-cancelled
+        {% elif task.planned_start_date
+              and task.planned_start_date.date()
+              == today_date %}
+            task-starts-today
+
+        {% endif %}"
             data-task-id="{{ task.task_id }}"
             data-level="{{ level }}"
         >
@@ -46,6 +56,19 @@
                         <span class="task-description">
                             {{ task.short_description }}
                         </span>
+                        {% if task.dependency_state == "waiting" %}
+                            <span class="dependency-badge dependency-waiting">
+                                Waiting
+                            </span>
+                        {% elif task.dependency_state == "delayed" %}
+                            <span class="dependency-badge dependency-delayed">
+                                Dependency Delay
+                            </span>
+                        {% elif task.dependency_state == "cancelled" %}
+                            <span class="dependency-badge dependency-cancelled">
+                                Dependency Cancelled
+                            </span>
+                        {% endif %}
                         {% if task.planned_start_date
                             and task.planned_start_date.date() == today_date %}
                             <span class="starts-today-badge">
