@@ -228,6 +228,7 @@ class TaskTreeNode(Task):
     children: list["TaskTreeNode"] = Field(
         default_factory=list,
     )
+    dependency_state: str = "none"
 
 
 class TaskListResult(BaseModel):

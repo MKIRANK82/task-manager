@@ -26,9 +26,16 @@ from app.ui.task_excel_routes import (
     router as task_excel_router,
 )
 
+from app.ui.work_from_office_routes import (
+    router as work_from_office_router,
+)
+
 from app.models.task_dependency_entity import (
     TaskDependencyEntity,
 )
+from app.models.work_from_office_entity import WorkFromOfficeEntity
+
+from app.models.task_attachment_entity import TaskAttachmentEntity
 
 Base.metadata.create_all(bind=engine)
 
@@ -56,6 +63,11 @@ app.include_router(
 app.include_router(dashboard_router)
 
 app.include_router(task_excel_router)
+
+app.include_router(
+    work_from_office_router
+)
+
 
 def get_correlation_id(
     request: Request,

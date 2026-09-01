@@ -520,7 +520,174 @@ Task {{ task.task_number }} | Task Manager
 
                 </div>
             </div>
+            <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
 
+        <h2 class="h5 mb-3">
+            Dependencies
+        </h2>
+
+        {% if dependency_state == "waiting" %}
+            <div class="alert alert-secondary py-2">
+                This task is waiting for another task
+                to complete.
+            </div>
+        {% endif %}
+
+        {% if dependency_state == "delayed" %}
+            <div class="alert alert-warning py-2">
+                This task should already have started,
+                but one or more dependencies are incomplete.
+            </div>
+        {% endif %}
+
+        {% if dependency_state == "cancelled" %}
+            <div class="alert alert-danger py-2">
+                One or more dependency tasks were cancelled.
+            </div>
+        {% endif %}
+
+        {% if dependencies %}
+
+            <div class="list-group mb-3">
+
+                {% for dependency in dependencies %}
+
+                    <div
+                        class="list-group-item
+                               d-flex
+                               justify-content-between
+                               align-items-center
+                               gap-3"
+                    >
+
+                        <div>
+
+                            <a
+                                href="/tasks/{{ dependency.task.task_id }}"
+                                class="text-decoration-none"
+                            >
+                                <strong>
+                                    {{ dependency.task.task_number }}
+                                </strong>
+
+                                {{ dependency.task.short_description }}
+                            </a>
+
+                            {% set dependency_status =
+                                dependency.task.status.value
+                                if dependency.task.status.value is defined
+                                else dependency.task.status
+                            %}
+
+                            <div class="small text-secondary">
+                                Status:
+                                {{ dependency_status
+                                    .replace("_", " ")
+                                    .title() }}
+                            </div>
+
+                        </div>
+
+                        <form
+                            method="post"
+                            action="/tasks/{{ task.task_id }}/dependencies/{{ dependency.dependency_id }}/delete"
+                        >
+                            <button
+                                type="submit"
+                                class="btn btn-outline-danger btn-sm"
+                                onclick="return confirm(
+                                    'Remove this dependency?'
+                                );"
+                            >
+                                Remove
+                            </button>
+                        </form>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p class="text-secondary">
+                This task has no dependencies.
+            </p>
+
+        {% endif %}
+
+        <hr>
+
+        <form
+            method="post"
+            action="/tasks/{{ task.task_id }}/dependencies"
+        >
+
+            <label
+                for="depends_on_task_id"
+                class="form-label"
+            >
+                Add Dependency Task ID
+            </label>
+
+            <div class="input-group">
+
+                <input
+                    id="depends_on_task_id"
+                    name="depends_on_task_id"
+                    type="number"
+                    min="1"
+                    class="form-control"
+                    placeholder="Task ID"
+                    required
+                >
+
+                <input
+                    type="hidden"
+                    name="created_by"
+                    value="Kiran"
+                >
+
+                <button
+                    type="submit"
+                    class="btn btn-outline-primary"
+                >
+                    Add Dependency
+                </button>
+
+            </div>
+
+        </form>
+
+        {% if required_by %}
+
+            <hr>
+
+            <h3 class="h6">
+                Required By
+            </h3>
+
+            {% for item in required_by %}
+
+                <div class="small mb-1">
+
+                    <a
+                        href="/tasks/{{ item.task.task_id }}"
+                    >
+                        {{ item.task.task_number }}
+                        {{ item.task.short_description }}
+                    </a>
+
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+    </div>
+</div>
         </div>
 
         <div class="col-12 col-xl-4">

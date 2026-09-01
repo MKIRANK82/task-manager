@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="mb-3">
+        <a
+            href="/dashboard"
+            class="btn btn-outline-secondary"
+        >
+            ← Back to Dashboard
+        </a>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <a
+            class="btn btn-outline-secondary"
+            href="/work-from-office?year={{ previous_year }}&month={{ previous_month }}"
+        >
+            ← Previous
+        </a>
+
+        <div class="text-center">
+            <h2 class="mb-1">
+                {{ month_name }} {{ year }}
+            </h2>
+
+            <div class="text-secondary">
+                Office Days:
+                <strong>{{ selected_count }}</strong>
+                /
+                <strong>{{ target_count }}</strong>
+            </div>
+        </div>
+
+        <a
+            class="btn btn-outline-secondary"
+            href="/work-from-office?year={{ next_year }}&month={{ next_month }}"
+        >
+            Next →
+        </a>
+
+    </div>
+
+
+    {% if selected_count < target_count %}
+
+        <div class="alert alert-info">
+            {{ target_count - selected_count }}
+            more office day(s) needed to reach the monthly target.
+        </div>
+
+    {% elif selected_count == target_count %}
+
+        <div class="alert alert-success">
+            Monthly office target reached.
+        </div>
+
+    {% else %}
+
+        <div class="alert alert-warning">
+            Office target exceeded by
+            {{ selected_count - target_count }}
+            day(s).
+        </div>
+
+    {% endif %}
+
+
+    <div class="table-responsive">
+
+        <table class="table table-bordered text-center align-middle">
+
+            <thead class="table-light">
+                <tr>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                    <th>Sun</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for week in weeks %}
+
+                    <tr>
+
+                        {% for day in week %}
+
+                            {% set is_current_month =
+                                day.month == month
+                            %}
+
+                            {% set is_selected =
+                                day in selected_dates
+                            %}
+
+                            <td
+                                style="
+                                    height: 95px;
+                                    min-width: 105px;
+                                    vertical-align: middle;
+                                "
+                                class="
+                                    {% if not is_current_month %}
+                                        bg-light text-muted
+                                    {% endif %}
+                                "
+                            >
+
+                                {% if is_current_month %}
+
+                                    <form
+                                        method="post"
+                                        action="/work-from-office/toggle"
+                                        class="m-0"
+                                    >
+
+                                        <input
+                                            type="hidden"
+                                            name="work_date"
+                                            value="{{ day.isoformat() }}"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="
+                                                btn
+                                                w-100
+                                                h-100
+                                                py-3
+
+                                                {% if is_selected %}
+                                                    btn-success
+                                                {% else %}
+                                                    btn-outline-light
+                                                    text-dark
+                                                    border
+                                                {% endif %}
+                                            "
+                                        >
+
+                                            <div class="fs-5 fw-bold">
+                                                {{ day.day }}
+                                            </div>
+
+                                            {% if is_selected %}
+                                                <div class="small mt-1">
+                                                    ✓ Office
+                                                </div>
+                                            {% else %}
+                                                <div class="small text-secondary mt-1">
+                                                    Click to select
+                                                </div>
+                                            {% endif %}
+
+                                            {% if day == today %}
+                                                <div class="small mt-1">
+                                                    Today
+                                                </div>
+                                            {% endif %}
+
+                                        </button>
+
+                                    </form>
+
+                                {% else %}
+
+                                    <div class="fs-5">
+                                        {{ day.day }}
+                                    </div>
+
+                                {% endif %}
+
+                            </td>
+
+                        {% endfor %}
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <div class="mt-3 text-secondary small">
+        Click a date once to mark it as Work From Office.
+        Click the same date again to remove it.
+    </div>
+
+</div>
+
+{% endblock %}

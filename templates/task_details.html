@@ -440,6 +440,52 @@ Task {{ task.task_number }} | Task Manager
 
                 </div>
             </div>
+
+            <!-- Attachments -->
+            <div class="card mb-4">
+
+                <div class="card-header">
+                    <strong>Attachments</strong>
+                </div>
+
+                <div class="card-body">
+
+                    {% if attachment_added %}
+                        <div class="alert alert-success">
+                            Attachment uploaded successfully.
+                        </div>
+                    {% endif %}
+
+                    {% if attachments %}
+
+                        <div class="list-group">
+
+                            {% for attachment in attachments %}
+
+                                <a
+                                    href="/tasks/{{ task.task_id }}/attachments/{{ attachment.attachment_id }}"
+                                    target="_blank"
+                                    class="list-group-item list-group-item-action"
+                                >
+                                    📎 {{ attachment.original_filename }}
+                                </a>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="text-secondary">
+                            No attachments.
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+</div>
+
                         <div class="card border-0 shadow-sm">
                 <div class="card-body">
 

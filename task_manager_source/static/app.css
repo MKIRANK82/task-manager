@@ -540,3 +540,56 @@ body {
     font-weight: 700;
     white-space: nowrap;
 }
+
+.task-dependency-waiting {
+    opacity: 0.55;
+    background: #f8fafc;
+}
+
+.task-dependency-waiting:hover {
+    opacity: 0.75;
+    background: #f1f5f9;
+}
+
+.task-dependency-delayed {
+    background: #fff7ed;
+    border-left: 4px solid #f59e0b;
+}
+
+.task-dependency-delayed:hover {
+    background: #ffedd5;
+}
+
+.task-dependency-cancelled {
+    background: #fef2f2;
+    border-left: 4px solid #dc2626;
+}
+
+.task-dependency-cancelled:hover {
+    background: #fee2e2;
+}
+
+.dependency-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.dependency-waiting {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.dependency-delayed {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.dependency-cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}

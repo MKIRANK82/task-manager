@@ -1,10 +1,20 @@
 from datetime import datetime , date
 from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, Request, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from fastapi import UploadFile, File
+from fastapi.responses import FileResponse
+from pathlib import Path
 
+from app.config.dependencies import (
+    get_task_attachment_service,
+)
+
+from app.services.task_attachment_service import (
+    TaskAttachmentService,
+)
 
 from app.config.dependencies import (
     get_task_activity_service,
@@ -231,8 +241,6 @@ def create_task_from_form(
         status_code=303,
     )
 
-
-
 @router.get(
     "/tasks/{task_id}",
     response_class=HTMLResponse,
@@ -241,15 +249,23 @@ def create_task_from_form(
 def task_details(
     request: Request,
     task_id: int,
-    service: TaskService = Depends(get_task_service),
+    service: TaskService = Depends(
+        get_task_service
+    ),
     activity_service: TaskActivityService = Depends(
         get_task_activity_service
     ),
     dependency_service: TaskDependencyService = Depends(
         get_task_dependency_service
     ),
+    attachment_service: TaskAttachmentService = Depends(
+        get_task_attachment_service
+    ),
 ) -> HTMLResponse:
-    task_entity = service.get_by_id(task_id)
+
+    task_entity = service.get_by_id(
+        task_id
+    )
 
     if task_entity is None:
         return templates.TemplateResponse(
@@ -267,6 +283,7 @@ def task_details(
         parent_task = service.get_by_id(
             task_entity.parent_task_id
         )
+
     dependencies = (
         dependency_service.get_dependencies(
             task_id
@@ -284,55 +301,122 @@ def task_details(
             task_id
         )
     )
+
+    attachments = (
+        attachment_service.get_task_attachments(
+            task_id
+        )
+    )
+
+    can_delete, delete_reason = (
+        service.can_delete_hierarchy(
+            task_id
+        )
+    )
+
     return templates.TemplateResponse(
         request=request,
         name="task_details.html",
         context={
             "task": task_entity,
+
             "parent_task": parent_task,
-            "child_tasks": service.get_children(task_id),
-            "activities": (
-                activity_service.get_by_task_id(task_id)
+
+            "child_tasks": (
+                service.get_children(
+                    task_id
+                )
             ),
+
+            "activities": (
+                activity_service.get_by_task_id(
+                    task_id
+                )
+            ),
+
+            # Attachments
+            "attachments": attachments,
+
             # Dependency information
             "dependencies": dependencies,
             "required_by": required_by,
             "dependency_state": dependency_state,
 
+            # Success messages
             "updated": (
-                request.query_params.get("updated")
+                request.query_params.get(
+                    "updated"
+                )
                 == "true"
             ),
+
             "created": (
-                request.query_params.get("created")
+                request.query_params.get(
+                    "created"
+                )
                 == "true"
             ),
+
             "comment_added": (
-                request.query_params.get("comment_added")
+                request.query_params.get(
+                    "comment_added"
+                )
                 == "true"
             ),
-            "can_delete": service.can_delete_hierarchy(
-                    task_id
-                )[0],
 
-                "delete_reason": service.can_delete_hierarchy(
-                    task_id
-                )[1],
+            "attachment_added": (
+                request.query_params.get(
+                    "attachment_added"
+                )
+                == "true"
+            ),
 
-                "delete_error": request.query_params.get(
+            # Delete information
+            "can_delete": can_delete,
+            "delete_reason": delete_reason,
+
+            "delete_error": (
+                request.query_params.get(
                     "delete_error"
-                ),
+                )
+            ),
 
-                "deleted": (
-                    request.query_params.get("deleted")
-                    == "true"
-                ),
+            "deleted": (
+                request.query_params.get(
+                    "deleted"
+                )
+                == "true"
+            ),
 
-                "deleted_count": request.query_params.get(
+            "deleted_count": (
+                request.query_params.get(
                     "deleted_count"
-                ),
+                )
+            ),
+
+            # Dependency messages
+            "dependency_error": (
+                request.query_params.get(
+                    "dependency_error"
+                )
+            ),
+
+            "dependency_added": (
+                request.query_params.get(
+                    "dependency_added"
+                )
+                == "true"
+            ),
+
+            "dependency_removed": (
+                request.query_params.get(
+                    "dependency_removed"
+                )
+                == "true"
+            ),
         },
     )
+
 
 
 
@@ -624,6 +708,67 @@ def update_task_from_form(
     return RedirectResponse(
         url=f"/tasks/{task_id}?updated=true",
         status_code=303,
+    )
+
+@router.post(
+    "/tasks/{task_id}/attachments",
+    include_in_schema=False,
+)
+def upload_task_attachment(
+    task_id: int,
+    file: UploadFile = File(...),
+    attachment_service: TaskAttachmentService = Depends(
+        get_task_attachment_service
+    ),
+):
+    attachment_service.save_attachment(
+        task_id=task_id,
+        file=file,
+    )
+
+    return RedirectResponse(
+        url=f"/tasks/{task_id}?attachment_added=true",
+        status_code=303,
+    )
+
+@router.get(
+    "/tasks/{task_id}/attachments/{attachment_id}",
+    include_in_schema=False,
+)
+def open_task_attachment(
+    task_id: int,
+    attachment_id: int,
+    attachment_service: TaskAttachmentService = Depends(
+        get_task_attachment_service
+    ),
+):
+    attachment = attachment_service.get_attachment(
+        attachment_id
+    )
+
+    if (
+        attachment is None
+        or attachment.task_id != task_id
+    ):
+        raise HTTPException(
+            status_code=404,
+            detail="Attachment not found",
+        )
+
+    file_path = Path(
+        "data/attachments"
+    ) / attachment.stored_filename
+
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="Attachment file not found",
+        )
+
+    return FileResponse(
+        path=file_path,
+        filename=attachment.original_filename,
+        media_type="application/octet-stream",
     )
 
 def render_create_form(

@@ -26,6 +26,20 @@ from app.services.task_dependency_service import (
     TaskDependencyService,
 )
 
+from app.repositories.task_attachment_repository import (
+    TaskAttachmentRepository,
+)
+from app.services.task_attachment_service import (
+    TaskAttachmentService,
+)
+
+from app.repositories.work_from_office_repository import (
+    WorkFromOfficeRepository,
+)
+from app.services.work_from_office_service import (
+    WorkFromOfficeService,
+)
+
 def get_task_activity_service(
     database: Session = Depends(
         get_database_session
@@ -113,4 +127,29 @@ def get_task_dependency_service(
         ),
         task_repository=task_repository,
         activity_service=activity_service,
+    )
+
+def get_work_from_office_service(
+    db: Session = Depends(get_database_session),
+) -> WorkFromOfficeService:
+
+    repository = WorkFromOfficeRepository(
+        db
+    )
+
+    return WorkFromOfficeService(
+        repository
+    )
+
+
+def get_task_attachment_service(
+    db: Session = Depends(get_database_session),
+) -> TaskAttachmentService:
+
+    repository = TaskAttachmentRepository(
+        db
+    )
+
+    return TaskAttachmentService(
+        repository
     )
