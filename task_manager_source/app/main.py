@@ -34,6 +34,9 @@ from app.models.task_dependency_entity import (
     TaskDependencyEntity,
 )
 from app.models.work_from_office_entity import WorkFromOfficeEntity
+
+from app.models.task_attachment_entity import TaskAttachmentEntity
+
 Base.metadata.create_all(bind=engine)
 
 

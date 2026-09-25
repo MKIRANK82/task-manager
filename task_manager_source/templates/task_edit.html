@@ -326,6 +326,8 @@ Edit Task {{ task.task_number }} | Task Manager
                     </div>
                 </div>
 
+                
+
             </div>
 
             <div class="col-12 col-xl-4">
@@ -458,6 +460,27 @@ Edit Task {{ task.task_number }} | Task Manager
                                 value="{{ task.team or '' }}"
                             >
                         </div>
+                        <div class="form-check mt-4">
+
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                id="auto_expand"
+                                name="auto_expand"
+                                value="true"
+                                {% if task.auto_expand %}
+                                    checked
+                                {% endif %}
+                            >
+
+                            <label
+                                class="form-check-label"
+                                for="auto_expand"
+                            >
+                                Expand automatically on dashboard
+                            </label>
+
+                        </div>
 
                     </div>
                 </div>
@@ -523,6 +546,51 @@ Edit Task {{ task.task_number }} | Task Manager
 
         </div>
     </form>
+    <hr class="my-4">
+
+        <div class="card">
+            <div class="card-header">
+                <strong>Attachments</strong>
+            </div>
+
+            <div class="card-body">
+
+                <form
+                    method="post"
+                    action="/tasks/{{ task.task_id }}/attachments"
+                    enctype="multipart/form-data"
+                >
+
+                    <div class="mb-3">
+
+                        <label
+                            for="attachment_file"
+                            class="form-label"
+                        >
+                            Upload File
+                        </label>
+
+                        <input
+                            type="file"
+                            class="form-control"
+                            id="attachment_file"
+                            name="file"
+                            required
+                        >
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn btn-outline-primary"
+                    >
+                        Upload Attachment
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
 </div>
 
 {% endblock %}

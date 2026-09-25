@@ -31,14 +31,10 @@
                         <button
                             type="button"
                             class="tree-toggle"
-                            onclick="toggleChildren(
-                                {{ task.task_id }},
-                                this
-                            )"
-                            aria-expanded="true"
-                            title="Expand or collapse subtasks"
+                            onclick="toggleChildren({{ task.task_id }}, this)"
+                            aria-expanded="{{ 'true' if task.auto_expand else 'false' }}"
                         >
-                            −
+                            {{ '−' if task.auto_expand else '+' }}
                         </button>
                     {% else %}
                         <span class="tree-toggle-spacer"></span>
@@ -145,9 +141,10 @@
         </div>
 
         {% if task.children %}
-            <div
+           <div
                 id="children-{{ task.task_id }}"
                 class="task-children"
+                style="display: {{ 'block' if task.auto_expand else 'none' }};"
             >
                 {{ render_tasks(task.children, level + 1) }}
             </div>

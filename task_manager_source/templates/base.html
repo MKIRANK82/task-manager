@@ -82,59 +82,83 @@
 </main>
 
 <script>
-    function toggleChildren(taskId, button) {
-        const childContainer = document.getElementById(
-            `children-${taskId}`
+   
+
+function toggleChildren(taskId, button) {
+
+    const children = document.getElementById(
+        `children-${taskId}`
+    );
+
+    if (!children) {
+        return;
+    }
+
+    const isHidden =
+        window.getComputedStyle(children).display === "none";
+
+    if (isHidden) {
+
+        // Expand
+        children.style.display = "block";
+
+        button.textContent = "−";
+        button.setAttribute(
+            "aria-expanded",
+            "true"
         );
 
-        if (!childContainer) {
-            return;
-        }
+    } else {
 
-        const isHidden = childContainer.classList.contains(
-            "d-none"
+        // Collapse
+        children.style.display = "none";
+
+        button.textContent = "+";
+        button.setAttribute(
+            "aria-expanded",
+            "false"
         );
+    }
+}
 
-        if (isHidden) {
-            childContainer.classList.remove("d-none");
+function expandAllTasks() {
+
+    document
+        .querySelectorAll(".task-children")
+        .forEach((element) => {
+            element.style.display = "block";
+        });
+
+    document
+        .querySelectorAll(".tree-toggle")
+        .forEach((button) => {
             button.textContent = "−";
-            button.setAttribute("aria-expanded", "true");
-        } else {
-            childContainer.classList.add("d-none");
+            button.setAttribute(
+                "aria-expanded",
+                "true"
+            );
+        });
+}
+
+
+function collapseAllTasks() {
+
+    document
+        .querySelectorAll(".task-children")
+        .forEach((element) => {
+            element.style.display = "none";
+        });
+
+    document
+        .querySelectorAll(".tree-toggle")
+        .forEach((button) => {
             button.textContent = "+";
-            button.setAttribute("aria-expanded", "false");
-        }
-    }
-
-    function expandAllTasks() {
-        document
-            .querySelectorAll(".task-children")
-            .forEach((element) => {
-                element.classList.remove("d-none");
-            });
-
-        document
-            .querySelectorAll(".tree-toggle")
-            .forEach((button) => {
-                button.textContent = "−";
-                button.setAttribute("aria-expanded", "true");
-            });
-    }
-
-    function collapseAllTasks() {
-        document
-            .querySelectorAll(".task-children")
-            .forEach((element) => {
-                element.classList.add("d-none");
-            });
-
-        document
-            .querySelectorAll(".tree-toggle")
-            .forEach((button) => {
-                button.textContent = "+";
-                button.setAttribute("aria-expanded", "false");
-            });
-    }
+            button.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+        });
+}
 </script>
 </body>
 </html>

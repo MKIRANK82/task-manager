@@ -84,6 +84,10 @@ def get_task_service(
         activity_service=activity_service,
     )
 
+    attachment_repository = (
+        TaskAttachmentRepository(database)
+    )
+
     delete_archive_service = (
         TaskDeleteArchiveService()
     )
@@ -96,6 +100,9 @@ def get_task_service(
         ),
         dependency_service=(
             dependency_service
+        ),
+        attachment_repository=(
+            attachment_repository
         ),
     )
 

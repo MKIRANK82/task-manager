@@ -575,6 +575,7 @@ def update_task_from_form(
     short_description: str = Form(...),
     description: str = Form(default=""),
     task_status: str = Form(...),
+    auto_expand: bool = Form(default=False),
     priority: str = Form(...),
     task_type: str = Form(...),
     category: str = Form(default=""),
@@ -614,6 +615,7 @@ def update_task_from_form(
             status=TaskStatus(task_status),
             priority=TaskPriority(priority),
             task_type=TaskType(task_type),
+            auto_expand=auto_expand,
             category=empty_to_none(category),
             tags=parse_tags(tags),
             planned_start_date=parse_datetime(
@@ -673,6 +675,7 @@ def update_task_from_form(
             task_status=task_status,
             priority=priority,
             task_type=task_type,
+            auto_expand=auto_expand,
             category=category,
             tags=tags,
             planned_start_date=planned_start_date,

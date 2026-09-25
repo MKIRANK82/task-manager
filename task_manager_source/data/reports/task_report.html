@@ -1,0 +1,415 @@
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>
+        Task Manager Report
+    </title>
+
+    <style>
+
+        body {
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #f5f7fa;
+
+            margin: 0;
+
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1600px;
+
+            margin: auto;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+        .generated {
+            color: #666;
+
+            margin-bottom: 30px;
+        }
+
+        .section {
+            background: white;
+
+            margin-bottom: 30px;
+
+            padding: 22px;
+
+            border-radius: 10px;
+
+            box-shadow:
+                0 2px 8px
+                rgba(0, 0, 0, 0.08);
+        }
+
+        .section-header {
+            display: flex;
+
+            justify-content:
+                space-between;
+
+            align-items: center;
+
+            margin-bottom: 15px;
+        }
+
+        .section-header h2 {
+            margin: 0;
+        }
+
+        .count {
+            font-size: 14px;
+
+            padding:
+                6px
+                12px;
+
+            background: #eef2f7;
+
+            border-radius: 20px;
+
+            font-weight: bold;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+
+            border-collapse:
+                collapse;
+        }
+
+        th {
+            background: #f1f3f5;
+
+            text-align: left;
+
+            padding: 10px;
+
+            border-bottom:
+                2px solid #ddd;
+
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px;
+
+            border-bottom:
+                1px solid #eee;
+
+            vertical-align: top;
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        .task-number {
+            font-weight: bold;
+
+            white-space: nowrap;
+        }
+
+        .description {
+            min-width: 240px;
+        }
+
+        .hierarchy {
+            min-width: 280px;
+
+            font-size: 13px;
+
+            line-height: 1.6;
+        }
+
+        .hierarchy-item {
+            display: flex;
+
+            align-items: flex-start;
+
+            margin-bottom: 2px;
+        }
+
+        .hierarchy-number {
+            display: inline-block;
+
+            min-width: 65px;
+
+            font-weight: bold;
+        }
+
+        .hierarchy-description {
+            color: #444;
+        }
+
+        .no-hierarchy {
+            color: #999;
+        }
+
+        .empty {
+            padding: 20px;
+
+            background: #fafafa;
+
+            color: #777;
+
+            border-radius: 6px;
+        }
+
+        .starts-today {
+            border-left:
+                5px solid #198754;
+        }
+
+        .blocked {
+            border-left:
+                5px solid #dc3545;
+        }
+
+        .open {
+            border-left:
+                5px solid #0d6efd;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <h1>
+        Task Manager Report
+    </h1>
+
+    <div class="generated">
+
+        Date:
+
+        <strong>
+            02 September 2026
+        </strong>
+
+        &nbsp; | &nbsp;
+
+        Generated:
+
+        02-Sep-2026 11:02
+
+    </div>
+
+
+    <!-- ======================================= -->
+    <!-- STARTING TODAY -->
+    <!-- ======================================= -->
+
+    <div class="section starts-today">
+
+        <div class="section-header">
+
+            <h2>
+                Tasks Starting Today
+            </h2>
+
+            <div class="count">
+                0 Tasks
+            </div>
+
+        </div>
+
+        
+        <div class="empty">
+            No tasks found.
+        </div>
+        
+
+    </div>
+
+
+    <!-- ======================================= -->
+    <!-- BLOCKED -->
+    <!-- ======================================= -->
+
+    <div class="section blocked">
+
+        <div class="section-header">
+
+            <h2>
+                Blocked Tasks
+            </h2>
+
+            <div class="count">
+                0 Tasks
+            </div>
+
+        </div>
+
+        
+        <div class="empty">
+            No tasks found.
+        </div>
+        
+
+    </div>
+
+
+    <!-- ======================================= -->
+    <!-- OPEN / ACTIVE -->
+    <!-- ======================================= -->
+
+    <div class="section open">
+
+        <div class="section-header">
+
+            <h2>
+                Open Tasks Already Started
+            </h2>
+
+            <div class="count">
+                1 Tasks
+            </div>
+
+        </div>
+
+        <p>
+            Started before today and planned end
+            is today or later.
+        </p>
+
+        
+    <div class="table-wrapper">
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Task</th>
+
+                    <th>Description</th>
+
+                    <th>Hierarchy</th>
+
+                    <th>Status</th>
+
+                    <th>Priority</th>
+
+                    <th>Category</th>
+
+                    <th>Planned Start</th>
+
+                    <th>Planned End</th>
+
+                    <th>Progress</th>
+
+                    
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                
+            <tr>
+
+                <td class="task-number">
+                    2.1.1
+                </td>
+
+                <td class="description">
+                    lock all imp apps or all apps
+                </td>
+
+                <td class="hierarchy">
+                    
+            <div class="hierarchy-item">
+
+                <span class="hierarchy-number">
+                    2.1
+                </span>
+
+                <span class="hierarchy-description">
+                    Back up RSA
+                </span>
+
+            </div>
+            
+            <div class="hierarchy-item">
+
+                <span class="hierarchy-number">
+                    2
+                </span>
+
+                <span class="hierarchy-description">
+                    Phone Repair
+                </span>
+
+            </div>
+            
+                </td>
+
+                <td>
+                    <span class="status">
+                        In Progress
+                    </span>
+                </td>
+
+                <td>
+                    Medium
+                </td>
+
+                <td>
+                    
+                </td>
+
+                <td>
+                    08-Aug-2026 18:11
+                </td>
+
+                <td>
+                    
+                </td>
+
+                <td>
+                    0%
+                </td>
+
+                
+
+            </tr>
+            
+
+            </tbody>
+
+        </table>
+
+    </div>
+    
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

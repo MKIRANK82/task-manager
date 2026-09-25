@@ -24,6 +24,9 @@ from app.models.task_activity import (
     ActivityType,
     TaskActivityCreate,
 )
+from app.repositories.task_attachment_repository import (
+    TaskAttachmentRepository,
+)
 from app.services.task_delete_archive_service import (
     TaskDeleteArchiveService,
 )
@@ -42,6 +45,9 @@ class TaskService:
         dependency_service: (
             TaskDependencyService | None
         ) = None,
+        attachment_repository: (
+            TaskAttachmentRepository | None
+        ) = None,
     ) -> None:
 
         self.repository = repository
@@ -54,6 +60,10 @@ class TaskService:
 
         self.dependency_service = (
             dependency_service
+        )
+
+        self.attachment_repository = (
+            attachment_repository
         )
 
 
@@ -488,6 +498,12 @@ class TaskService:
                         task_ids,
                         commit=False,
                     )
+
+            if self.attachment_repository is not None:
+                self.attachment_repository.delete_by_task_ids(
+                    task_ids,
+                    commit=False,
+                )
             self.activity_service.repository.delete_by_task_ids(
                 task_ids,
                 commit=False,

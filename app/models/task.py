@@ -46,6 +46,8 @@ class TaskBase(BaseModel):
     priority: TaskPriority = TaskPriority.MEDIUM
     task_type: TaskType = TaskType.TASK
 
+    auto_expand: bool = False
+
     category: str | None = Field(
         default=None,
         max_length=100,
@@ -153,6 +155,7 @@ class TaskUpdate(BaseModel):
     status: TaskStatus | None = None
     priority: TaskPriority | None = None
     task_type: TaskType | None = None
+    auto_expand: bool = False
 
     category: str | None = Field(
         default=None,

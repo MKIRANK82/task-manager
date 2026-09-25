@@ -26,6 +26,13 @@ from app.services.task_dependency_service import (
     TaskDependencyService,
 )
 
+from app.repositories.task_attachment_repository import (
+    TaskAttachmentRepository,
+)
+from app.services.task_attachment_service import (
+    TaskAttachmentService,
+)
+
 from app.repositories.work_from_office_repository import (
     WorkFromOfficeRepository,
 )
@@ -77,6 +84,10 @@ def get_task_service(
         activity_service=activity_service,
     )
 
+    attachment_repository = (
+        TaskAttachmentRepository(database)
+    )
+
     delete_archive_service = (
         TaskDeleteArchiveService()
     )
@@ -89,6 +100,9 @@ def get_task_service(
         ),
         dependency_service=(
             dependency_service
+        ),
+        attachment_repository=(
+            attachment_repository
         ),
     )
 
@@ -131,5 +145,18 @@ def get_work_from_office_service(
     )
 
     return WorkFromOfficeService(
+        repository
+    )
+
+
+def get_task_attachment_service(
+    db: Session = Depends(get_database_session),
+) -> TaskAttachmentService:
+
+    repository = TaskAttachmentRepository(
+        db
+    )
+
+    return TaskAttachmentService(
         repository
     )

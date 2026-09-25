@@ -80,6 +80,13 @@ class TaskEntity(Base):
         default=list,
     )
 
+    auto_expand: Mapped[bool] = mapped_column(
+    Boolean,
+    nullable=False,
+    default=False,
+    server_default="0",
+)
+
     planned_start_date: Mapped[datetime | None] = mapped_column(
         DateTime,
         nullable=True,
